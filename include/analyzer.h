@@ -4,7 +4,7 @@
 #include "protocol_engine.h"
 #include "universal_decoder.h"
 
-constexpr uint16_t OPENRF_ANALYZER_RAW_PREVIEW = 192;
+constexpr uint16_t SIGVERN_ANALYZER_RAW_PREVIEW = 192;
 
 
 struct AnalyzerLiveState {

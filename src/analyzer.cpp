@@ -56,14 +56,14 @@ bool analyzerExternalRam = false;
 size_t analyzerAllocated = 0;
 
 int16_t* allocateAnalyzerPulseStore() {
-  const size_t bytes = OPENRF_ANALYZER_RAW_PREVIEW * sizeof(int16_t);
+  const size_t bytes = SIGVERN_ANALYZER_RAW_PREVIEW * sizeof(int16_t);
   void* ptr = nullptr;
   if (ESP.getPsramSize()) {
-    ptr = heap_caps_calloc(OPENRF_ANALYZER_RAW_PREVIEW, sizeof(int16_t),
+    ptr = heap_caps_calloc(SIGVERN_ANALYZER_RAW_PREVIEW, sizeof(int16_t),
                            MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   }
   if (!ptr) {
-    ptr = heap_caps_calloc(OPENRF_ANALYZER_RAW_PREVIEW, sizeof(int16_t),
+    ptr = heap_caps_calloc(SIGVERN_ANALYZER_RAW_PREVIEW, sizeof(int16_t),
                            MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
   }
   if (ptr) analyzerAllocated += bytes;
@@ -200,7 +200,7 @@ void analyzeAlternation(const int16_t* pulses, uint16_t count, AnalyzerCandidate
       merged += pulses[i];
     } else {
       alternatingPairs++;
-      if (out.normalizedPulses && normalizedCount < OPENRF_ANALYZER_RAW_PREVIEW) {
+      if (out.normalizedPulses && normalizedCount < SIGVERN_ANALYZER_RAW_PREVIEW) {
         if (merged > INT16_MAX) merged = INT16_MAX;
         if (merged < INT16_MIN) merged = INT16_MIN;
         out.normalizedPulses[normalizedCount++] = static_cast<int16_t>(merged);
@@ -209,7 +209,7 @@ void analyzeAlternation(const int16_t* pulses, uint16_t count, AnalyzerCandidate
       currentRun = 1;
     }
   }
-  if (out.normalizedPulses && normalizedCount < OPENRF_ANALYZER_RAW_PREVIEW) {
+  if (out.normalizedPulses && normalizedCount < SIGVERN_ANALYZER_RAW_PREVIEW) {
     if (merged > INT16_MAX) merged = INT16_MAX;
     if (merged < INT16_MIN) merged = INT16_MIN;
     out.normalizedPulses[normalizedCount++] = static_cast<int16_t>(merged);
@@ -320,7 +320,7 @@ void analyzerRecordCandidate(const int16_t* pulses, uint16_t count, uint32_t dur
   lastCandidate.pulseCount = count;
   lastCandidate.durationUs = durationUs;
   lastCandidate.rejectReason = rejectReason;
-  lastCandidate.rawPulseCount = min(count, static_cast<uint16_t>(OPENRF_ANALYZER_RAW_PREVIEW));
+  lastCandidate.rawPulseCount = min(count, static_cast<uint16_t>(SIGVERN_ANALYZER_RAW_PREVIEW));
   uint32_t minPulse = UINT32_MAX;
   uint32_t maxPulse = 0;
   for (uint16_t i = 0; i < count; i++) {
@@ -386,7 +386,7 @@ void analyzerProcess(const int16_t* pulses, uint16_t count, uint32_t durationUs,
   snapshot.peakRssiDbm = peakRssiDbm[index];
   estimatePulseClasses(pulses, count, snapshot.pulseClasses, snapshot.pulseClassCount);
 
-  const uint16_t previewCount = min(count, static_cast<uint16_t>(OPENRF_ANALYZER_RAW_PREVIEW));
+  const uint16_t previewCount = min(count, static_cast<uint16_t>(SIGVERN_ANALYZER_RAW_PREVIEW));
   snapshot.rawPulseCount = previewCount;
   uint64_t pulseSum = 0;
   uint32_t minPulse = UINT32_MAX;

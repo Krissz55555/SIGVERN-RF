@@ -13,7 +13,7 @@
 #include "rxslots.h"
 #include "scratch.h"
 #include "mqtt.h"
-#include "openrf_wifi.h"
+#include "sigvern_wifi.h"
 #include "backup.h"
 #include "analyzer.h"
 #include "web.h"
@@ -37,7 +37,7 @@ String otaUploadMessage;
 bool backupUploadOk = false;
 String backupUploadMessage;
 File backupUploadFile;
-constexpr const char* BACKUP_UPLOAD_PATH = "/openrf-backup-upload.tmp";
+constexpr const char* BACKUP_UPLOAD_PATH = "/sigvern-backup-upload.tmp";
 
 void scheduleRestart(uint32_t delayMs, const __FlashStringHelper* reason);
 
@@ -88,7 +88,7 @@ void handleRoot() {
 void handleStatusApi() {
   JsonDocument doc;
 
-  doc["device"] = "OpenRF Platform";
+  doc["device"] = "SIGVERN RF";
   doc["hostname"] = config.hostname;
   doc["version"] = FW_VERSION;
   doc["wifi_mode"] = wifiModeName();
@@ -105,7 +105,7 @@ void handleStatusApi() {
   doc["core0_load_percent"] = dualCoreLoad(0);
   doc["core1_load_percent"] = dualCoreLoad(1);
 
-  const OpenRFHardwareStatus hw = hardwareStatusGet();
+  const SigvernHardwareStatus hw = hardwareStatusGet();
   doc["rf1_online"] = hw.radio1Online;
   doc["rf2_online"] = hw.radio2Online;
   doc["lora_online"] = hw.loraOnline;
@@ -143,8 +143,8 @@ void handleStatusApi() {
   doc["psram_total"] = psramTotal;
   doc["psram_free"] = psramFree;
   doc["psram_used_percent"] = psramTotal ? ((psramTotal - psramFree) * 100UL / psramTotal) : 0;
-  doc["openrf_psram_buffers"] = psramOpenRFAllocatedBytes();
-  doc["openrf_psram_external"] = psramBuffersUsingExternalRam();
+  doc["sigvern_psram_buffers"] = psramSigvernAllocatedBytes();
+  doc["sigvern_psram_external"] = psramBuffersUsingExternalRam();
   doc["analyzer_psram_buffers"] = analyzerPsramAllocatedBytes();
   doc["analyzer_psram_external"] = analyzerUsingExternalRam();
 
@@ -157,9 +157,9 @@ void handleStatusApi() {
   doc["rf_event_dropped"] = rfEventDroppedCount();
   doc["analyzer_full_api_calls"] = analyzerFullApiCalls;
   doc["analyzer_live_api_calls"] = analyzerLiveApiCalls;
-  doc["max_free_block"] = openrfMaxFreeBlock();
-  doc["heap_fragmentation_percent"] = openrfHeapFragmentation();
-  doc["reset_reason"] = openrfResetReason();
+  doc["max_free_block"] = sigvernMaxFreeBlock();
+  doc["heap_fragmentation_percent"] = sigvernHeapFragmentation();
+  doc["reset_reason"] = sigvernResetReason();
 
   String output;
   serializeJson(doc, output);
@@ -198,7 +198,7 @@ void handleRadioEnableApi() {
   JsonDocument response;
   response["ok"] = true;
   response["restart_required"] = true;
-  response["message"] = "Radio configuration saved. OpenRF is restarting.";
+  response["message"] = "Radio configuration saved. Sigvern is restarting.";
 
   String output;
   serializeJson(response, output);
@@ -447,7 +447,7 @@ void handleFrequencyTuneApi() {
     return;
   }
 
-  // Step 26.2.1: persist the tuned Operating frequency. If OpenRF reboots
+  // Step 26.2.1: persist the tuned Operating frequency. If Sigvern reboots
   // during a TUNED session, the same frequency is restored with a fresh
   // 15-minute safety window.
   if (radioId == 1) config.radio1FrequencyMhz = frequencyMHz;
@@ -926,7 +926,7 @@ void handleRadioRawApi() {
     return;
   }
 
-  const uint16_t copied = Radio.copyLastRaw(openrfScratch, OPENRF_MAX_RAW_PULSES);
+  const uint16_t copied = Radio.copyLastRaw(sigvernScratch, SIGVERN_MAX_RAW_PULSES);
 
   String output;
   output.reserve(256 + copied * 7);
@@ -942,7 +942,7 @@ void handleRadioRawApi() {
 
   for (uint16_t i = 0; i < copied; i++) {
     if (i > 0) output += ',';
-    output += String(openrfScratch[i]);
+    output += String(sigvernScratch[i]);
     if ((i & 0x3F) == 0) yield();
   }
 
@@ -989,7 +989,7 @@ void handleLearnRawApi() {
     return;
   }
 
-  const uint16_t copied = Radio.copyLearnRaw(openrfScratch, OPENRF_MAX_RAW_PULSES);
+  const uint16_t copied = Radio.copyLearnRaw(sigvernScratch, SIGVERN_MAX_RAW_PULSES);
   String output;
   output.reserve(256 + copied * 7);
   output += "{\"available\":true";
@@ -1000,7 +1000,7 @@ void handleLearnRawApi() {
   output += ",\"raw\":[";
   for (uint16_t i = 0; i < copied; i++) {
     if (i > 0) output += ',';
-    output += String(openrfScratch[i]);
+    output += String(sigvernScratch[i]);
     if ((i & 0x3F) == 0) yield();
   }
   output += "]}";
@@ -1067,7 +1067,7 @@ void handleAnalyzerApi() {
              static_cast<unsigned int>(radioId),
              Radio.getOperatingFrequency(radioId), Radio.getRadioRSSI(radioId),
              static_cast<unsigned long>(ESP.getFreeHeap()),
-             static_cast<unsigned long>(openrfMaxFreeBlock()));
+             static_cast<unsigned long>(sigvernMaxFreeBlock()));
     server.sendHeader("Cache-Control", "no-store");
     server.send(200, "application/json", disabledJson);
     return;
@@ -1081,7 +1081,7 @@ void handleAnalyzerApi() {
   constexpr uint16_t DEVELOPER_RAW_LIMIT = 96;
   const uint16_t rawLimit = DEVELOPER_RAW_LIMIT;
   const uint32_t freeHeap = ESP.getFreeHeap();
-  const uint32_t maxBlock = openrfMaxFreeBlock();
+  const uint32_t maxBlock = sigvernMaxFreeBlock();
 
   JsonDocument doc;
   doc["available"] = a.available;
@@ -1327,7 +1327,7 @@ void handleSlotsApi() {
   server.sendContent(F("{\"slots\":["));
 
   uint8_t usedCount = 0;
-  for (uint8_t i = 1; i <= OPENRF_SLOT_COUNT; i++) {
+  for (uint8_t i = 1; i <= SIGVERN_SLOT_COUNT; i++) {
     const SlotInfo info = storageGetSlotInfo(i);
     if (info.used) usedCount++;
 
@@ -1364,7 +1364,7 @@ void handleSlotsApi() {
   String tail;
   tail.reserve(48);
   tail += F("],\"count\":");
-  tail += String(static_cast<unsigned int>(OPENRF_SLOT_COUNT));
+  tail += String(static_cast<unsigned int>(SIGVERN_SLOT_COUNT));
   tail += F(",\"used_count\":");
   tail += String(static_cast<unsigned int>(usedCount));
   tail += '}';
@@ -1378,7 +1378,7 @@ void handleSlotsApi() {
 void handleSlotStatsApi() {
   JsonDocument doc;
   JsonArray slots = doc["slots"].to<JsonArray>();
-  for (uint8_t slot = 1U; slot <= OPENRF_SLOT_COUNT; ++slot) {
+  for (uint8_t slot = 1U; slot <= SIGVERN_SLOT_COUNT; ++slot) {
     const RawSlotMatchStats stats = rawSlotMatcherGetStats(slot);
     if (!stats.available) continue;
     JsonObject item = slots.add<JsonObject>();
@@ -1414,7 +1414,7 @@ bool readSlotRequest(JsonDocument& doc, uint8_t& slot) {
   if (!server.hasArg("plain")) { sendJsonError(400, "Missing JSON request body"); return false; }
   if (deserializeJson(doc, server.arg("plain"))) { sendJsonError(400, "Invalid JSON request body"); return false; }
   const int requested = doc["slot"] | 0;
-  if (requested < 1 || requested > OPENRF_SLOT_COUNT) { sendJsonError(400, "Slot must be between 1 and 30"); return false; }
+  if (requested < 1 || requested > SIGVERN_SLOT_COUNT) { sendJsonError(400, "Slot must be between 1 and 30"); return false; }
   slot = static_cast<uint8_t>(requested);
   return true;
 }
@@ -1428,11 +1428,11 @@ void handleSlotSaveApi() {
   }
   String name = doc["name"].is<const char*>() ? doc["name"].as<String>() : ("RF Slot " + String(slot));
   name.trim();
-  if (name.length() > OPENRF_SLOT_NAME_MAX) { sendJsonError(400, "Slot name is too long"); return; }
-  const uint16_t count = Radio.copyLearnRaw(openrfScratch, OPENRF_MAX_RAW_PULSES);
+  if (name.length() > SIGVERN_SLOT_NAME_MAX) { sendJsonError(400, "Slot name is too long"); return; }
+  const uint16_t count = Radio.copyLearnRaw(sigvernScratch, SIGVERN_MAX_RAW_PULSES);
   uint32_t fingerprint = 0;
   if (!storageSaveSlot(slot, name, capture.frequencyMHz, capture.radioId,
-                       openrfScratch, count, capture.durationUs, &fingerprint)) {
+                       sigvernScratch, count, capture.durationUs, &fingerprint)) {
     sendJsonError(500, "Failed to save slot to LittleFS"); return;
   }
   rawSlotMatcherReload(slot);
@@ -1454,14 +1454,14 @@ void handleSlotSendApi() {
   JsonDocument doc; uint8_t slot;
   if (!readSlotRequest(doc, slot)) return;
   SlotInfo info;
-  if (!storageLoadSlot(slot, openrfScratch, OPENRF_MAX_RAW_PULSES, info)) { sendJsonError(404, "Slot is empty or invalid"); return; }
+  if (!storageLoadSlot(slot, sigvernScratch, SIGVERN_MAX_RAW_PULSES, info)) { sendJsonError(404, "Slot is empty or invalid"); return; }
   // Step 27: RF Slot TX uses the slot's stored Radio + Learned frequency.
   // The RF core retunes only for the transmission and restores the radio's
   // current Operating frequency (including an active TUNED session) afterwards.
   const uint8_t radioId = (info.radioId == 1 || info.radioId == 2)
                               ? info.radioId
                               : (info.frequencyMHz >= 700.0F ? 2 : 1);
-  if (!rfCommandSendRawTuned(openrfScratch, info.pulseCount, config.replayCount,
+  if (!rfCommandSendRawTuned(sigvernScratch, info.pulseCount, config.replayCount,
                              radioId, info.frequencyMHz)) {
     sendJsonError(500, "RF transmission failed");
     return;
@@ -1474,7 +1474,7 @@ void handleSlotRenameApi() {
   JsonDocument doc; uint8_t slot;
   if (!readSlotRequest(doc, slot)) return;
   String name = doc["name"] | ""; name.trim();
-  if (name.length() == 0 || name.length() > OPENRF_SLOT_NAME_MAX) { sendJsonError(400, "Name must contain 1 to 32 characters"); return; }
+  if (name.length() == 0 || name.length() > SIGVERN_SLOT_NAME_MAX) { sendJsonError(400, "Name must contain 1 to 32 characters"); return; }
   if (!storageRenameSlot(slot, name)) { sendJsonError(404, "Slot is empty or rename failed"); return; }
   sendSuccess("Slot " + String(slot) + " renamed");
   if (mqttIsConnected() && config.homeAssistantDiscovery) mqttPublishDiscovery();
@@ -1498,7 +1498,7 @@ void handleRxSlotsApi() {
                                : 0U;
   server.setContentLength(CONTENT_LENGTH_UNKNOWN);
   server.send(200, "application/json", "");
-  server.sendContent("{\"count\":" + String(OPENRF_RX_SLOT_COUNT) + ",\"used_count\":" + String(rxSlotCountUsed()) +
+  server.sendContent("{\"count\":" + String(SIGVERN_RX_SLOT_COUNT) + ",\"used_count\":" + String(rxSlotCountUsed()) +
                      ",\"learn_state\":\"" + String(rxSlotLearnState()) +
                      "\",\"learn_source\":\"" + String(rxSlotLearnSource()) +
                      "\",\"learning_slot\":" + String(rxSlotLearningId()) +
@@ -1515,7 +1515,7 @@ void handleRxSlotsApi() {
                      ",\"v2_tx_failure\":\"" + String(tx.available ? protocolTxFailureReasonName(tx.failureReason) : "NONE") +
                      "\",\"v2_tx_age_ms\":" + String(txAgeMs) +
                      ",\"slots\":[");
-  for (uint8_t i=1;i<=OPENRF_RX_SLOT_COUNT;i++) {
+  for (uint8_t i=1;i<=SIGVERN_RX_SLOT_COUNT;i++) {
     if (i>1) server.sendContent(",");
     RxSlotInfo x=rxSlotGetInfo(i); JsonDocument d;
     d["id"]=i; d["used"]=x.used; d["enabled"]=x.enabled; d["name"]=x.name;
@@ -1656,7 +1656,7 @@ void handlePostConfigApi() {
 
   JsonDocument response;
   response["success"] = true;
-  response["message"] = "Configuration saved. OpenRF Platform is restarting and will join the configured WiFi network.";
+  response["message"] = "Configuration saved. SIGVERN RF is restarting and will join the configured WiFi network.";
   response["restart_required"] = true;
 
   String output;
@@ -1682,7 +1682,7 @@ void handleBackupDownload() {
     return;
   }
 
-  String filename = "OpenRF-Platform-backup-" + String(millis()) + ".orfbackup";
+  String filename = "SIGVERN-RF-backup-" + String(millis()) + ".sgrbackup";
   server.sendHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
   server.sendHeader("Cache-Control", "no-store");
   server.setContentLength(contentLength);

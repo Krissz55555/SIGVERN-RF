@@ -2,15 +2,15 @@
 
 #include <Arduino.h>
 
-constexpr uint16_t OPENRF_ISR_CAPTURE_PULSES = 600;
-constexpr uint16_t OPENRF_MAX_RAW_PULSES = 2048;
+constexpr uint16_t SIGVERN_ISR_CAPTURE_PULSES = 600;
+constexpr uint16_t SIGVERN_MAX_RAW_PULSES = 2048;
 
 // Central RF frequency model. The defaults describe the normal band/profile
 // center, while each RadioChannel keeps a separate operating frequency that
 // may be changed by System frequency tuning.
-constexpr float OPENRF_RADIO1_DEFAULT_FREQUENCY_MHZ = 433.920F;
-constexpr float OPENRF_RADIO2_DEFAULT_FREQUENCY_MHZ = 868.350F;
-constexpr float OPENRF_FREQUENCY_TUNED_EPSILON_MHZ = 0.0005F;
+constexpr float SIGVERN_RADIO1_DEFAULT_FREQUENCY_MHZ = 433.920F;
+constexpr float SIGVERN_RADIO2_DEFAULT_FREQUENCY_MHZ = 868.350F;
+constexpr float SIGVERN_FREQUENCY_TUNED_EPSILON_MHZ = 0.0005F;
 
 enum class RadioMode : uint8_t { OFFLINE, IDLE, RX, TX, ERROR };
 enum class LearnState : uint8_t { IDLE, WAITING_FOR_SIGNAL, PREVIEW_READY, ACCEPTED_RAM };

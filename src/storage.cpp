@@ -16,7 +16,7 @@ struct SlotHeaderV1 {
   uint32_t durationUs;
   uint32_t frequencyHz;
   uint32_t fingerprint;
-  char name[OPENRF_SLOT_NAME_MAX + 1];
+  char name[SIGVERN_SLOT_NAME_MAX + 1];
 };
 
 struct SlotHeaderV2 {
@@ -27,7 +27,7 @@ struct SlotHeaderV2 {
   uint32_t frequencyHz;
   uint8_t radioId;
   uint32_t fingerprint;
-  char name[OPENRF_SLOT_NAME_MAX + 1];
+  char name[SIGVERN_SLOT_NAME_MAX + 1];
 };
 #pragma pack(pop)
 
@@ -38,11 +38,11 @@ struct DecodedHeader {
   uint32_t frequencyHz = 0;
   uint8_t radioId = 0;
   uint32_t fingerprint = 0;
-  char name[OPENRF_SLOT_NAME_MAX + 1] = {0};
+  char name[SIGVERN_SLOT_NAME_MAX + 1] = {0};
   size_t headerSize = 0;
 };
 
-bool validSlot(uint8_t slot) { return slot >= 1 && slot <= OPENRF_SLOT_COUNT; }
+bool validSlot(uint8_t slot) { return slot >= 1 && slot <= SIGVERN_SLOT_COUNT; }
 String slotPath(uint8_t slot) { return "/slots/slot" + String(slot) + ".bin"; }
 String defaultName(uint8_t slot) { return "RF Slot " + String(slot); }
 
@@ -81,8 +81,8 @@ bool decodeHeader(File& file, DecodedHeader& out) {
     return false;
   }
 
-  if (out.pulseCount == 0 || out.pulseCount > OPENRF_MAX_RAW_PULSES) return false;
-  out.name[OPENRF_SLOT_NAME_MAX] = '\0';
+  if (out.pulseCount == 0 || out.pulseCount > SIGVERN_MAX_RAW_PULSES) return false;
+  out.name[SIGVERN_SLOT_NAME_MAX] = '\0';
   return true;
 }
 
@@ -132,14 +132,14 @@ SlotInfo storageGetSlotInfo(uint8_t slot) {
 bool storageSaveSlot(uint8_t slot, const String& requestedName, float frequencyMHz,
                      uint8_t radioId, const int16_t* pulses, uint16_t pulseCount,
                      uint32_t durationUs, uint32_t* fingerprintOut) {
-  if (!validSlot(slot) || !pulses || pulseCount == 0 || pulseCount > OPENRF_MAX_RAW_PULSES) return false;
+  if (!validSlot(slot) || !pulses || pulseCount == 0 || pulseCount > SIGVERN_MAX_RAW_PULSES) return false;
   if (radioId != 0 && radioId != 1 && radioId != 2) return false;
   if (!LittleFS.exists("/slots") && !LittleFS.mkdir("/slots")) return false;
 
   String name = requestedName;
   name.trim();
   if (name.length() == 0) name = defaultName(slot);
-  if (name.length() > OPENRF_SLOT_NAME_MAX) name = name.substring(0, OPENRF_SLOT_NAME_MAX);
+  if (name.length() > SIGVERN_SLOT_NAME_MAX) name = name.substring(0, SIGVERN_SLOT_NAME_MAX);
 
   SlotHeaderV2 header{};
   header.magic = SLOT_MAGIC;
@@ -189,11 +189,11 @@ bool storageLoadSlot(uint8_t slot, int16_t* pulses, uint16_t capacity, SlotInfo&
 bool storageRenameSlot(uint8_t slot, const String& requestedName) {
   if (!validSlot(slot)) return false;
   SlotInfo info;
-  if (!storageLoadSlot(slot, openrfScratch, OPENRF_MAX_RAW_PULSES, info)) return false;
+  if (!storageLoadSlot(slot, sigvernScratch, SIGVERN_MAX_RAW_PULSES, info)) return false;
   // Renaming a V1 slot upgrades it safely to V2 while preserving its legacy
   // unspecified radioId=0 and all RF data.
   return storageSaveSlot(slot, requestedName, info.frequencyMHz, info.radioId,
-                         openrfScratch, info.pulseCount, info.durationUs, nullptr);
+                         sigvernScratch, info.pulseCount, info.durationUs, nullptr);
 }
 
 bool storageDeleteSlot(uint8_t slot) {
@@ -204,7 +204,7 @@ bool storageDeleteSlot(uint8_t slot) {
 
 uint8_t storageCountUsedSlots() {
   uint8_t count = 0;
-  for (uint8_t slot = 1; slot <= OPENRF_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_SLOT_COUNT; slot++) {
     if (storageGetSlotInfo(slot).used) count++;
     yield();
   }

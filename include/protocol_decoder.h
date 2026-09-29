@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-enum class OpenRfProtocol : uint8_t {
+enum class SigvernProtocol : uint8_t {
   UNKNOWN = 0,
   EV1527_PRINCETON = 1,
   PT2262 = 2,
@@ -50,7 +50,7 @@ struct LegacyEv1527Diagnostics {
 
 struct ProtocolDecodeResult {
   bool valid = false;
-  OpenRfProtocol protocol = OpenRfProtocol::UNKNOWN;
+  SigvernProtocol protocol = SigvernProtocol::UNKNOWN;
   uint8_t symbolCount = 0;       // bits for binary protocols, trits for PT2262
   uint64_t code = 0;
   uint16_t pulseLengthUs = 0;
@@ -61,4 +61,4 @@ struct ProtocolDecodeResult {
 ProtocolDecodeResult protocolDecode(const int16_t* pulses, uint16_t count);
 ProtocolDecodeResult protocolDecodeDetailed(const int16_t* pulses, uint16_t count, LegacyEv1527Diagnostics& diagnostics);
 const char* legacyBinaryRejectReasonName(LegacyBinaryRejectReason reason);
-const char* protocolName(OpenRfProtocol protocol);
+const char* protocolName(SigvernProtocol protocol);

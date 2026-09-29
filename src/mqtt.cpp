@@ -12,7 +12,8 @@
 #include "raw_slot_matcher.h"
 #include "scratch.h"
 #include "version.h"
-#include "openrf_wifi.h"
+#include "sigvern_wifi.h"
+#include "legacy_discovery.h"
 #include "platform_compat.h"
 
 namespace {
@@ -42,6 +43,10 @@ PubSubClient client(networkClient);
 uint32_t lastConnectAttemptMs = 0;
 String baseTopic;
 String clientId;
+bool legacyCleanupPending = true;
+uint16_t legacyCleanupStep = 0;
+uint32_t legacyCleanupNextMs = 0;
+bool discoveryPublishOk = true;
 bool discoveryPending = false;
 bool discoveryRescanRequested = false;
 uint16_t discoveryStep = 0;
@@ -67,14 +72,14 @@ void publishLearnState(const char* state, uint8_t slot = 0) {
 }
 
 uint8_t findFirstEmptySlot() {
-  for (uint8_t slot = 1; slot <= OPENRF_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_SLOT_COUNT; slot++) {
     if (!storageSlotExists(slot)) return slot;
   }
   return 0;
 }
 
 bool beginMqttLearn(uint8_t slot, const String& name) {
-  if (slot < 1 || slot > OPENRF_SLOT_COUNT || pendingLearnActive) return false;
+  if (slot < 1 || slot > SIGVERN_SLOT_COUNT || pendingLearnActive) return false;
   if (!rfCommandStartLearn()) return false;
   pendingLearnSlot = slot;
   pendingLearnName = name.length() ? name : ("RF Slot " + String(slot));
@@ -85,50 +90,48 @@ bool beginMqttLearn(uint8_t slot, const String& name) {
   return true;
 }
 
-String sanitizeTopicPart(String value) {
-  value.toLowerCase();
-  String out;
-  out.reserve(value.length());
-  for (size_t i = 0; i < value.length(); i++) {
-    const char c = value[i];
-    if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_') out += c;
-    else if (c == ' ' || c == '.') out += '-';
-  }
-  if (out.length() == 0) out = "openrf-platform";
-  return out;
-}
-
 String deviceIdentifier() {
-  return "openrf_" + openrfChipIdHex();
+  return "sigvern_rf_" + sigvernChipIdHex();
 }
 
 void addDevice(JsonDocument& doc) {
   JsonObject device = doc["device"].to<JsonObject>();
   JsonArray identifiers = device["identifiers"].to<JsonArray>();
   identifiers.add(deviceIdentifier());
-  device["name"] = config.hostname;
-  device["manufacturer"] = "OpenRF";
+  device["name"] = "SIGVERN RF";
+  device["manufacturer"] = "SIGVERN RF";
   device["model"] = "ESP32-S3 CC1101 RF Platform";
   device["sw_version"] = FW_VERSION;
   device["configuration_url"] = "http://" + WiFi.localIP().toString() + "/";
 }
 
+bool publishDiscoveryPayload(const char* topic, const char* payload) {
+  const bool ok = client.publish(topic, payload, true);
+  discoveryPublishOk = discoveryPublishOk && ok;
+  return ok;
+}
+
 bool publishDiscoveryDocument(const String& topic, JsonDocument& doc) {
+  if (!doc["unique_id"].isNull()) {
+    const int slash = topic.indexOf('/', 14); // after homeassistant/
+    const String domain = topic.substring(14, slash);
+    doc["default_entity_id"] = domain + "." + doc["unique_id"].as<String>();
+  }
   String payload;
   payload.reserve(900);
   serializeJson(doc, payload);
-  const bool ok = client.publish(topic.c_str(), payload.c_str(), true);
+  const bool ok = publishDiscoveryPayload(topic.c_str(), payload.c_str());
   yield();
   return ok;
 }
 
 bool sendSlot(uint8_t slot) {
   SlotInfo info;
-  if (!storageLoadSlot(slot, openrfScratch, OPENRF_MAX_RAW_PULSES, info)) return false;
+  if (!storageLoadSlot(slot, sigvernScratch, SIGVERN_MAX_RAW_PULSES, info)) return false;
   const uint8_t radioId = (info.radioId == 1 || info.radioId == 2)
                               ? info.radioId
                               : (info.frequencyMHz >= 700.0F ? 2 : 1);
-  return rfCommandSendRawTuned(openrfScratch, info.pulseCount, config.replayCount,
+  return rfCommandSendRawTuned(sigvernScratch, info.pulseCount, config.replayCount,
                                radioId, info.frequencyMHz);
 }
 
@@ -154,6 +157,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   (void)length;
   const String incoming(topic);
 
+  if (incoming == "homeassistant/status") {
+    if (length == 6 && memcmp(payload, "online", 6) == 0) {
+      legacyCleanupPending = true;
+      legacyCleanupStep = 0;
+      legacyCleanupNextMs = millis();
+      mqttPublishDiscovery();
+    }
+    return;
+  }
+
   if (incoming == baseTopic + "/learn/next") {
     const uint8_t slot = findFirstEmptySlot();
     if (slot == 0) {
@@ -171,7 +184,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     const int slash = incoming.indexOf('/', rxPrefix.length());
     if (slash < 0) return;
     const int slotNumber = incoming.substring(rxPrefix.length(), slash).toInt();
-    if (slotNumber < 1 || slotNumber > OPENRF_RX_SLOT_COUNT) return;
+    if (slotNumber < 1 || slotNumber > SIGVERN_RX_SLOT_COUNT) return;
     const uint8_t slot = static_cast<uint8_t>(slotNumber);
     const String action = incoming.substring(slash + 1);
     if (action != "send") return;
@@ -203,7 +216,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   const int slash = incoming.indexOf('/', prefix.length());
   if (slash < 0) return;
   const int slotNumber = incoming.substring(prefix.length(), slash).toInt();
-  if (slotNumber < 1 || slotNumber > OPENRF_SLOT_COUNT) return;
+  if (slotNumber < 1 || slotNumber > SIGVERN_SLOT_COUNT) return;
   const uint8_t slot = static_cast<uint8_t>(slotNumber);
   const String action = incoming.substring(slash + 1);
   const String stateTopic = baseTopic + "/slot/" + String(slot) + "/state";
@@ -263,6 +276,14 @@ void connectIfNeeded() {
     return;
   }
 
+  // Repeat on every connection/birth: idempotent, broker-specific and safe
+  // after disconnects or power loss; no flash completion flag can skip a broker.
+  legacyCleanupPending = true;
+  legacyCleanupStep = 0;
+  legacyCleanupNextMs = millis();
+  discoveryPending = false;
+  discoveryStep = 0;
+  client.subscribe("homeassistant/status");
   client.publish(availability.c_str(), "online", true);
   client.subscribe((baseTopic + "/slot/+/send").c_str());
   client.subscribe((baseTopic + "/slot/+/relearn").c_str());
@@ -339,8 +360,26 @@ void mqttHandleRFEventImpl(const RFEventMessage& event) {
   }
 }
 
+void processLegacyDiscovery() {
+  if (!legacyCleanupPending || !client.connected()) return;
+  const uint32_t now = millis();
+  if (static_cast<int32_t>(now - legacyCleanupNextMs) < 0) return;
+  char topic[160];
+  const String chip = sigvernChipIdHex();
+  if (!legacyDiscoveryTopic(topic, sizeof(topic), chip.c_str(), legacyCleanupStep,
+                            SIGVERN_SLOT_COUNT, SIGVERN_RX_SLOT_COUNT)) return;
+  if (client.publish(topic, "", true)) {
+    ++legacyCleanupStep;
+    if (legacyCleanupStep >= legacyDiscoveryCount(SIGVERN_SLOT_COUNT, SIGVERN_RX_SLOT_COUNT)) {
+      legacyCleanupPending = false;
+      Serial.println(F("Legacy HA discovery cleanup sent; SIGVERN discovery may start"));
+    }
+  }
+  legacyCleanupNextMs = now + DISCOVERY_STEP_DELAY_MS;
+}
+
 void processDiscovery() {
-  if (!discoveryPending || !config.homeAssistantDiscovery || !client.connected()) return;
+  if (legacyCleanupPending || !discoveryPending || !config.homeAssistantDiscovery || !client.connected()) return;
 
   const uint32_t now = millis();
   if (static_cast<int32_t>(now - discoveryNextStepMs) < 0) return;
@@ -348,6 +387,7 @@ void processDiscovery() {
   // ESP32-S3: Discovery is still paced to avoid flooding MQTT, but it is no
   // longer suspended based on ESP8266 heap / contiguous-block thresholds.
 
+  discoveryPublishOk = true;
   const String id = deviceIdentifier();
   const String availability = baseTopic + "/availability";
 
@@ -390,11 +430,11 @@ void processDiscovery() {
     publishDiscoveryDocument("homeassistant/sensor/" + id + "/status/config", doc);
   } else if (discoveryStep == 3) {
     const String topic = "homeassistant/sensor/" + id + "/rx_pulses/config";
-    client.publish(topic.c_str(), "", true);
+    publishDiscoveryPayload(topic.c_str(), "");
   } else if (discoveryStep == 4) {
     const String topic = "homeassistant/sensor/" + id + "/rx_rssi/config";
-    client.publish(topic.c_str(), "", true);
-  } else if (discoveryStep < 5 + OPENRF_SLOT_COUNT * 5U) {
+    publishDiscoveryPayload(topic.c_str(), "");
+  } else if (discoveryStep < 5 + SIGVERN_SLOT_COUNT * 5U) {
     // Step 40: each RAW RF slot is now bidirectional. Existing Send/Relearn/
     // Delete buttons remain, and two receive-side discovery documents expose
     // the same learned RAW identity as a trigger + one-second binary sensor.
@@ -411,7 +451,7 @@ void processDiscovery() {
                          : item == 1U ? buttonBase + "_relearn/config"
                                       : buttonBase + "_delete/config";
       if (!info.used) {
-        client.publish(topic.c_str(), "", true);
+        publishDiscoveryPayload(topic.c_str(), "");
       } else {
         JsonDocument doc;
         if (item == 0U) {
@@ -437,7 +477,7 @@ void processDiscovery() {
       }
     } else if (item == 3U) {
       if (!info.used) {
-        client.publish(triggerTopic.c_str(), "", true);
+        publishDiscoveryPayload(triggerTopic.c_str(), "");
       } else {
         JsonDocument doc;
         doc["automation_type"] = "trigger";
@@ -451,7 +491,7 @@ void processDiscovery() {
       }
     } else {
       if (!info.used) {
-        client.publish(sensorTopic.c_str(), "", true);
+        publishDiscoveryPayload(sensorTopic.c_str(), "");
       } else {
         JsonDocument doc;
         doc["name"] = info.name + " RX";
@@ -469,7 +509,7 @@ void processDiscovery() {
   } else {
     // Protocol RX slots keep their receive trigger + binary sensor + optional
     // V2-native Send button.
-    const uint16_t rxStart = 5 + OPENRF_SLOT_COUNT * 5U;
+    const uint16_t rxStart = 5 + SIGVERN_SLOT_COUNT * 5U;
     const uint16_t relative = discoveryStep - rxStart;
     const uint8_t slot = static_cast<uint8_t>(relative / 3U) + 1;
     const uint8_t item = static_cast<uint8_t>(relative % 3U);
@@ -480,7 +520,7 @@ void processDiscovery() {
 
     if (item == 0) {
       if (!info.used || !info.enabled) {
-        client.publish(triggerTopic.c_str(), "", true);
+        publishDiscoveryPayload(triggerTopic.c_str(), "");
       } else {
         JsonDocument doc;
         doc["automation_type"] = "trigger";
@@ -494,7 +534,7 @@ void processDiscovery() {
       }
     } else if (item == 1) {
       if (!info.used || !info.enabled) {
-        client.publish(sensorTopic.c_str(), "", true);
+        publishDiscoveryPayload(sensorTopic.c_str(), "");
       } else {
         JsonDocument doc;
         doc["name"] = info.name;
@@ -510,7 +550,7 @@ void processDiscovery() {
       }
     } else {
       if (!info.used || !info.sendSupported) {
-        client.publish(sendTopic.c_str(), "", true);
+        publishDiscoveryPayload(sendTopic.c_str(), "");
       } else {
         JsonDocument doc;
         doc["name"] = info.name + " Send";
@@ -525,8 +565,12 @@ void processDiscovery() {
     }
   }
 
+  if (!discoveryPublishOk) {
+    discoveryNextStepMs = now + DISCOVERY_STEP_DELAY_MS;
+    return;
+  }
   discoveryStep++;
-  const uint16_t totalSteps = 5 + OPENRF_SLOT_COUNT * 5U + OPENRF_RX_SLOT_COUNT * 3U;
+  const uint16_t totalSteps = 5 + SIGVERN_SLOT_COUNT * 5U + SIGVERN_RX_SLOT_COUNT * 3U;
   if (discoveryStep >= totalSteps) {
     discoveryPending = false;
     discoveryStep = 0;
@@ -626,8 +670,8 @@ void mqttPublishRawSlotEvent(uint8_t slot, const SlotInfo& info,
 }
 
 void mqttBegin() {
-  baseTopic = "openrf/" + sanitizeTopicPart(config.hostname);
-  clientId = sanitizeTopicPart(config.hostname) + "-" + openrfChipIdHex();
+  baseTopic = "sigvern/rf/" + deviceIdentifier();
+  clientId = deviceIdentifier();
   client.setServer(config.mqttHost.c_str(), config.mqttPort);
   client.setCallback(callback);
   client.setBufferSize(1024);
@@ -648,6 +692,7 @@ void mqttLoop() {
   connectIfNeeded();
   if (!client.connected()) return;
   client.loop();
+  processLegacyDiscovery();
   processDiscovery();
 }
 

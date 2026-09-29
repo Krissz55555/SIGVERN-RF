@@ -3,7 +3,7 @@
 
 struct RFEventMessage;
 
-constexpr uint8_t OPENRF_RX_SLOT_COUNT = 15;
+constexpr uint8_t SIGVERN_RX_SLOT_COUNT = 15;
 
 struct RxSlotInfo {
   uint8_t id = 0;

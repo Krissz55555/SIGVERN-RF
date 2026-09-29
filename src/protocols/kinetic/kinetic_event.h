@@ -30,7 +30,7 @@ struct KineticEvent {
 
   uint8_t channel = 0;
   bool repeat = false;
-  OpenRfDecodeMetadata metadata;
+  SigvernDecodeMetadata metadata;
 };
 
 inline const char* kineticEventTypeName(const KineticEventType type) {

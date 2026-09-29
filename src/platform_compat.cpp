@@ -3,7 +3,7 @@
 
 #include "platform_compat.h"
 
-String openrfChipIdHex() {
+String sigvernChipIdHex() {
   const uint64_t mac = ESP.getEfuseMac();
   char buffer[13];
   snprintf(buffer, sizeof(buffer), "%04X%08X",
@@ -12,19 +12,19 @@ String openrfChipIdHex() {
   return String(buffer);
 }
 
-uint32_t openrfMaxFreeBlock() {
+uint32_t sigvernMaxFreeBlock() {
   return ESP.getMaxAllocHeap();
 }
 
-uint8_t openrfHeapFragmentation() {
+uint8_t sigvernHeapFragmentation() {
   const uint32_t freeHeap = ESP.getFreeHeap();
   if (freeHeap == 0) return 0;
-  const uint32_t maxBlock = openrfMaxFreeBlock();
+  const uint32_t maxBlock = sigvernMaxFreeBlock();
   const uint32_t percent = 100UL - ((maxBlock * 100UL) / freeHeap);
   return static_cast<uint8_t>(percent > 100UL ? 100UL : percent);
 }
 
-String openrfResetReason() {
+String sigvernResetReason() {
   switch (esp_reset_reason()) {
     case ESP_RST_UNKNOWN:   return "Unknown";
     case ESP_RST_POWERON:   return "Power on";

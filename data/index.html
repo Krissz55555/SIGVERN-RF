@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>OpenRF Platform</title>
+<title>SIGVERN RF</title>
 <link href="/logo.svg" rel="icon" type="image/svg+xml">
 <link href="/style.css" rel="stylesheet">
 </head>
 <body>
 <header class="topbar"><div class="topbar-content">
-<div class="brand"><img alt="OpenRF Platform logo" class="brand-logo" src="/logo.svg"><div><p class="eyebrow">OPEN SOURCE RF GATEWAY &amp; ANALYZER</p><h1>OpenRF Platform</h1></div></div>
+<div class="brand"><img alt="SIGVERN RF logo" class="brand-logo" src="/logo.svg"><div><p class="eyebrow">OPEN SOURCE RF GATEWAY &amp; ANALYZER</p><h1>SIGVERN <span class="brand-rf">RF</span></h1></div></div>
 <div aria-label="Live system load" class="live-metrics">
 <div class="metric-gauge metric-core0"><div><b>CORE 0</b><small>System</small></div><div class="gauge" id="core0Gauge" style="--p:0"><span id="core0Load">0%</span></div></div>
 <div class="metric-gauge metric-core1"><div><b>CORE 1</b><small>Radio</small></div><div class="gauge" id="core1Gauge" style="--p:0"><span id="core1Load">0%</span></div></div>
@@ -77,7 +77,7 @@
 <section class="page" id="page-settings">
 <div class="page-heading"><div><p class="eyebrow">DEVICE CONFIGURATION</p><h2>Settings</h2></div></div>
 <form class="card form-card" id="settingsForm">
-<div class="form-section"><h3>Device</h3><label class="field"><span>Hostname</span><input id="hostname" maxlength="32" required="" type="text" value="OpenRF-Platform"><small>1–32 characters.</small></label><label class="field"><span>Replay count</span><input id="replayCount" max="10" min="1" required="" type="number" value="1"><small>Number of transmissions when an RF slot is sent.</small></label></div><div class="form-section"><h3>WiFi client</h3><p>Optional. The setup access point is disabled automatically after a successful connection. It remains available only when WiFi is not configured or the connection fails.</p><label class="field"><span>WiFi SSID</span><input id="wifiSsid" maxlength="32" type="text"></label><label class="field"><span>WiFi password</span><input id="wifiPassword" maxlength="64" placeholder="Leave empty to keep saved password" type="password"><small id="wifiPasswordState">No WiFi password information loaded.</small></label></div>
+<div class="form-section"><h3>Device</h3><label class="field"><span>Hostname</span><input id="hostname" maxlength="32" required="" type="text" value="sigvern-rf"><small>1–32 characters.</small></label><label class="field"><span>Replay count</span><input id="replayCount" max="10" min="1" required="" type="number" value="1"><small>Number of transmissions when an RF slot is sent.</small></label></div><div class="form-section"><h3>WiFi client</h3><p>Optional. The setup access point is disabled automatically after a successful connection. It remains available only when WiFi is not configured or the connection fails.</p><label class="field"><span>WiFi SSID</span><input id="wifiSsid" maxlength="32" type="text"></label><label class="field"><span>WiFi password</span><input id="wifiPassword" maxlength="64" placeholder="Leave empty to keep saved password" type="password"><small id="wifiPasswordState">No WiFi password information loaded.</small></label></div>
 <div class="form-section"><div class="toggle-row"><div><h3>MQTT</h3><p>Enable communication with MQTT and Home Assistant.</p></div><label class="switch"><input id="mqttEnabled" type="checkbox"><span class="switch-slider"></span></label></div><div id="mqttFields"><label class="field"><span>MQTT host</span><input id="mqttHost" maxlength="64" type="text"></label><label class="field"><span>MQTT port</span><input id="mqttPort" max="65535" min="1" type="number"></label><label class="field"><span>MQTT username</span><input id="mqttUser" maxlength="64" type="text"></label><label class="field"><span>MQTT password</span><input id="mqttPassword" maxlength="128" placeholder="Leave empty to keep saved password" type="password"><small id="passwordState">No password information loaded.</small></label><div class="toggle-row discovery-toggle"><div><h3>Home Assistant Auto Discovery</h3><p>Publish saved RF slots and diagnostic sensors automatically when MQTT connects.</p></div><label class="switch"><input checked id="homeAssistantDiscovery" type="checkbox"><span class="switch-slider"></span></label></div></div></div>
 <div class="form-actions"><span class="form-message" id="saveMessage"></span><button class="button button-primary" id="saveButton" type="submit">Save settings</button></div>
 </form>
@@ -257,7 +257,7 @@
 <div><span>PSRAM free</span><strong id="memoryPsramFree">—</strong></div>
 <div><span>Internal heap total</span><strong id="memoryHeapTotal">—</strong></div>
 <div><span>Internal heap free</span><strong id="memoryHeapFree">—</strong></div>
-<div><span>OpenRF PSRAM buffers</span><strong id="memoryOpenrfPsram">—</strong></div>
+<div><span>SIGVERN RF PSRAM buffers</span><strong id="memorySigvernPsram">—</strong></div>
 <div><span>Analyzer PSRAM stores</span><strong id="memoryAnalyzerPsram">—</strong></div>
 </div>
 </article><article class="card rf-hardware-card">
@@ -315,7 +315,7 @@
 </div>
 </div>
 <div class="rf-hardware-footer">
-<p class="platform-note">Detected = hardware is physically responding. Enabled = OpenRF is allowed to use the module. Default is the normal band frequency; Operating is the frequency the radio is actually using after optional tuning. LoRa RF-engine integration is still pending.</p>
+<p class="platform-note">Detected = hardware is physically responding. Enabled = SIGVERN RF is allowed to use the module. Default is the normal band frequency; Operating is the frequency the radio is actually using after optional tuning. LoRa RF-engine integration is still pending.</p>
 <span class="form-message" id="rfEnableMessage"></span>
 <button class="button button-primary" id="saveRfEnableButton" type="button" disabled>Save radio settings</button>
 </div>
@@ -464,8 +464,8 @@
 </article>
 <article class="card system-card">
 <h3>Restore backup</h3>
-<p>Restoring replaces the current configuration and RF and RX slots, then restarts the bridge. Only OpenRF <code>.orfbackup</code> files are accepted.</p>
-<label class="field"><span>Backup file</span><input accept=".orfbackup,application/octet-stream" id="backupFile" type="file"></label>
+<p>Restoring replaces the current configuration and RF and RX slots, then restarts the bridge. SIGVERN <code>.sgrbackup</code> and legacy OpenRF <code>.orfbackup</code> files are accepted.</p>
+<label class="field"><span>Backup file</span><input accept=".sgrbackup,.orfbackup,application/octet-stream" id="backupFile" type="file"></label>
 <div class="progress-track"><span class="progress-value" id="backupProgress"></span></div>
 <span class="form-message" id="backupMessage"></span>
 <button class="button button-danger" id="backupRestoreButton" type="button">Restore backup</button>
@@ -744,12 +744,13 @@
 <article class="card about-card about-card-modern">
 <div class="about-main">
 <div class="about-brand">
-<img alt="OpenRF Platform logo" class="about-logo" src="/logo.svg">
+<img alt="SIGVERN RF logo" class="about-logo" src="/logo.svg">
 <div>
 <p class="eyebrow">OPEN SOURCE RF GATEWAY &amp; ANALYZER</p>
-<h2>OpenRF Platform</h2>
+<h2>SIGVERN RF</h2>
 </div>
 </div>
+<p class="platform-note">Signal Intelligence Gateway for Versatile Event Recognition &amp; Normalization. Build. Learn. Share. Evolve.</p>
 <p>A compact and powerful RF gateway and analyzer for <strong>ESP32-S3</strong> and CC1101. It provides precise RAW Learn/Replay, protocol-aware RX events, RF Analyzer, WebUI, REST API, MQTT, Home Assistant Discovery, OTA updates and configuration backup/restore.</p>
 <p class="platform-note"><strong>V2 beta platform:</strong> dual-core operation, PSRAM-aware memory, the V2 Protocol Engine and non-exclusive RF Analyzer. Bidirectional RAW RF Slots provide TX replay and UNKNOWN RAW receive matching. SX1276 LoRa hardware detection is supported; RF-engine integration is pending.</p>
 </div>

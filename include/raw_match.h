@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-namespace OpenRfRawMatch {
+namespace SigvernRawMatch {
 
 static const uint16_t kMaxPatternPulses = 512U;
 static const uint16_t kMinimumUsefulPulses = 12U;
@@ -42,4 +42,4 @@ PreparedPattern prepare(const int16_t* input, uint16_t inputCount,
 MatchResult comparePrepared(const int16_t* learned, uint16_t learnedCount,
                             const int16_t* incoming, uint16_t incomingCount);
 
-}  // namespace OpenRfRawMatch
+}  // namespace SigvernRawMatch

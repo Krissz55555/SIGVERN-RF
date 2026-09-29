@@ -1,6 +1,6 @@
-# Contributing to OpenRF Platform
+# Contributing to SIGVERN RF
 
-First of all, thank you for your interest in OpenRF Platform!
+First of all, thank you for your interest in SIGVERN RF!
 
 Whether you're reporting a bug, improving the documentation or contributing new RF protocol support, your help is greatly appreciated.
 
@@ -8,7 +8,7 @@ Whether you're reporting a bug, improving the documentation or contributing new 
 
 # Project Philosophy
 
-OpenRF Platform is designed around a simple principle:
+SIGVERN RF is designed around a simple principle:
 
 > **Keep the platform stable while allowing protocols to evolve independently.**
 
@@ -92,8 +92,8 @@ If you are unsure about a feature or architectural change, please open an Issue 
 
 # Thank You
 
-Every contribution helps improve OpenRF Platform.
+Every contribution helps improve SIGVERN RF.
 
 Whether it's a typo fix, a new protocol decoder or simply testing the firmware, your time and effort are sincerely appreciated.
 
-Thank you for helping make OpenRF Platform better!
+Thank you for helping make SIGVERN RF better!

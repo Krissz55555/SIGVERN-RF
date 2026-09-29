@@ -40,7 +40,7 @@ struct RFCommandMessage {
   uint16_t pulseCount = 0;
   float frequencyMhz = 433.92F;
   uint8_t radioId = 0;
-  int16_t pulses[OPENRF_MAX_RAW_PULSES] = {0};
+  int16_t pulses[SIGVERN_MAX_RAW_PULSES] = {0};
   TaskHandle_t replyTask = nullptr;
   bool* result = nullptr;
 };
@@ -94,7 +94,7 @@ struct RFEventMessage {
   V2ActionPayload v2Action;
   V2LearnPayload v2Learn;
 
-  int16_t pulses[OPENRF_MAX_RAW_PULSES] = {0};
+  int16_t pulses[SIGVERN_MAX_RAW_PULSES] = {0};
 };
 
 extern QueueHandle_t rfCommandQueue;

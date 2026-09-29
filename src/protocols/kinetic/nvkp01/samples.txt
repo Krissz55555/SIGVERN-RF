@@ -1,6 +1,6 @@
 NVKP01 RAW samples
 Frequency: 433.920 MHz
-Source: OpenRF Analyzer capture after RX alternation cleanup
+Source: Sigvern Analyzer capture after RX alternation cleanup
 
 Sample 1
 -1502, 708, -5709, 684, -5722, 653, -959, 448, -353, 448, -960, 250, -167, 626, -1550, 644, -162, 357, -654, 960, -245, 336, -464

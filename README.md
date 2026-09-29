@@ -1,18 +1,24 @@
 <p align="center">
-  <img src="assets/openrf-platform-logo.svg" alt="OpenRF Platform" width="180">
+  <img src="assets/sigvern-rf-logo.png" alt="SIGVERN RF" width="600">
 </p>
 
-# OpenRF Platform
+# SIGVERN RF
 
 **Open-source RF gateway and signal-analysis platform for ESP32-S3, dual CC1101 radios, and local Home Assistant integration.**
 
-**Current release: v2.0.0-beta.2**
+**Current development checkpoint: v2.0.0-beta.2-rebrand.1**
 
-> OpenRF Platform v2.0.0-beta.2 goes beyond the ESP32-S3 migration delivered in beta.1. It establishes the RF capture, normalization, protocol-decision, diagnostics, and learned-signal infrastructure needed for the future **Deep Analyzer**.
+Previously OpenRF Platform. This checkpoint changes the project identity and MQTT/HA identifiers; the beta.2 RF engine is preserved. Read [REBRAND_MIGRATION.md](REBRAND_MIGRATION.md) before upgrading.
+
+> SIGVERN RF v2.0.0-beta.2 goes beyond the ESP32-S3 migration delivered in beta.1. It establishes the RF capture, normalization, protocol-decision, diagnostics, and learned-signal infrastructure needed for the future **Deep Analyzer**.
 
 The Deep Analyzer aims to make unknown remotes easier to capture, compare, understand, and integrate into local automations. Fully automatic protocol recognition and integration are **not yet implemented**. This beta provides the underlying radio engine and learning workflow on which those capabilities can be built.
 
 A major practical addition is **bidirectional RAW operation**: saved RAW signals can be transmitted from Home Assistant, while learned unknown RAW remotes can trigger Home Assistant automations.
+
+The name expands to **Signal Intelligence Gateway for Versatile Event Recognition &amp; Normalization**.
+
+**Build. Learn. Share. Evolve.**
 
 ## Release status and highlights
 
@@ -48,7 +54,7 @@ Together, these make captures easier to compare consistently and provide room fo
 
 ## Dual-radio RF architecture
 
-OpenRF uses two dedicated CC1101 radio paths rather than switching one radio between bands.
+SIGVERN RF uses two dedicated CC1101 radio paths rather than switching one radio between bands.
 
 | Radio | Default frequency | Role |
 | --- | --- | --- |
@@ -92,18 +98,18 @@ NVKP01 recognition remains conservative. Its normalized button event should not 
 
 RAW learning records pulse sequences without requiring a native protocol decoder or encoder. Saved RF Slots support both replay and matching of later eligible receptions.
 
-### Home Assistant → OpenRF → RF transmission
+### Home Assistant → SIGVERN RF → RF transmission
 
 1.  Capture a remote signal in **RF Learn**. 
 2.  Inspect the preview and accept it into temporary memory. 
 3.  Save it to a persistent **RF Slot**. 
 4.  Replay the saved signal from the WebUI, MQTT, or Home Assistant. 
 
-This allows compatible devices to be controlled even when OpenRF does not yet have a native protocol encoder for them.
+This allows compatible devices to be controlled even when SIGVERN RF does not yet have a native protocol encoder for them.
 
 Accepting a preview is **not** the same as saving a slot. The signal becomes persistent only after it is saved.
 
-### Unknown RF remote → OpenRF → Home Assistant
+### Unknown RF remote → SIGVERN RF → Home Assistant
 
 1.  Learn and save a suitable RAW signal. 
 2.  On a later reception, the V2 Protocol Engine evaluates the capture. 
@@ -127,7 +133,7 @@ The two slot types serve different purposes.
 | **RF Slots**                | Learned RAW pulse sequences        | RAW replay and receive matching for eligible `UNKNOWN` signals |
 | **RX Slots**                | Normalized known-protocol identity | Receive events from supported V2 protocols                     |
 
-OpenRF provides **30 persistent RAW RF Slots**. Saved waveforms are retained for transmission, while matching uses normalized comparisons.
+SIGVERN RF provides **30 persistent RAW RF Slots**. Saved waveforms are retained for transmission, while matching uses normalized comparisons.
 
 RX Slots avoid depending on exact RAW timing equality. They identify receptions through the fields supplied by the relevant protocol module, such as protocol and code. Available identity detail varies by protocol.
 
@@ -157,7 +163,7 @@ The current RF Analyzer is distinct from the planned Deep Analyzer.
 
 ## MQTT, Home Assistant, and REST API
 
-OpenRF publishes state and receive events under a configurable MQTT base topic. Home Assistant Discovery exposes supported transmission controls, receive entities, and device automation triggers.
+SIGVERN RF publishes state and receive events under the stable MQTT base topic `sigvern/rf/sigvern_rf_<chipid>`. Home Assistant Discovery exposes supported transmission controls, receive entities, and device automation triggers.
 
 Integration supports:
 
@@ -193,8 +199,8 @@ Live indicators expose Core 0, Core 1, PSRAM, and heap usage. Navigation support
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/webui-rf-slots-beta2.png" alt="Bidirectional RAW RF Slots in OpenRF Platform v2.0.0-beta.2"></td>
-    <td width="50%"><img src="assets/webui-rx-slots-beta2.png" alt="Known-protocol RX Slots in OpenRF Platform v2.0.0-beta.2"></td>
+    <td width="50%"><small>Historical OpenRF beta.2 screenshot (before rebrand)</small><img src="assets/webui-rf-slots-beta2.png" alt="Historical RAW RF Slots in OpenRF Platform v2.0.0-beta.2"></td>
+    <td width="50%"><img src="assets/webui-rx-slots-beta2.png" alt="Historical RX Slots in OpenRF Platform v2.0.0-beta.2"></td>
   </tr>
   <tr>
     <td align="center"><strong>Bidirectional RAW RF Slots</strong><br>Saved RAW signals can be transmitted and can match later eligible UNKNOWN receptions.</td>
@@ -203,13 +209,13 @@ Live indicators expose Core 0, Core 1, PSRAM, and heap usage. Navigation support
 </table>
 
 <p align="center">
-  <img src="assets/webui-rf-analyzer-beta2.png" alt="Live RF Analyzer in OpenRF Platform v2.0.0-beta.2" width="760">
+  <img src="assets/webui-rf-analyzer-beta2.png" alt="Historical RF Analyzer in OpenRF Platform v2.0.0-beta.2" width="760">
 </p>
 <p align="center"><strong>Live RF Analyzer</strong><br>Inspect accepted and rejected captures without stopping normal gateway operation.</p>
 
 ## ESP32-S3 architecture and memory
 
-OpenRF uses RadioLib, PlatformIO, LittleFS, and a dual-core FreeRTOS architecture.
+SIGVERN RF uses RadioLib, PlatformIO, LittleFS, and a dual-core FreeRTOS architecture.
 
 | Domain | Main responsibilities |
 | --- | --- |
@@ -244,7 +250,7 @@ Use band-appropriate modules and antennas, a suitable power supply, and the wiri
 
 ## Hardware wiring
 
-![OpenRF Platform ESP32-S3 wiring diagram](assets/openrf-platform-wiring.png)
+![SIGVERN RF ESP32-S3 wiring diagram](assets/sigvern-rf-wiring.svg)
 
 > **Important:** all RF modules use **3.3 V logic and power**. Do not connect a CC1101 or SX1276 module to 5 V. Connect every module to the same ground as the ESP32-S3.
 
@@ -313,8 +319,8 @@ Keep SPI and interrupt wires short, add local decoupling close to each RF module
 
 For prebuilt installation, use matching firmware and LittleFS images from the same release:
 
-- `OpenRF-Platform-v2.0.0-beta.2-ESP32S3-firmware.bin` 
-- `OpenRF-Platform-v2.0.0-beta.2-ESP32S3-littlefs.bin` 
+- `SIGVERN-RF-v2.0.0-beta.2-rebrand.1-ESP32S3-firmware.bin` 
+- `SIGVERN-RF-v2.0.0-beta.2-rebrand.1-ESP32S3-littlefs.bin` 
 
 Follow the release’s flashing instructions and partition layout.
 
@@ -322,7 +328,7 @@ Follow the release’s flashing instructions and partition layout.
 
 ### First start
 
-1.  Connect to the **OpenRF-Platform** setup access point. 
+1.  Connect to the **SIGVERN-RF-Setup** setup access point. 
 2.  Open [http://192.168.4.1](http://192.168.4.1). 
 3.  Configure Wi-Fi and, if required, MQTT. 
 4.  Save the configuration and allow the device to restart. 
@@ -411,7 +417,7 @@ The intended result is assistance in selecting a suitable RF profile, potentiall
 
 The target workflow is **Analyze → Learn → Save → Home Assistant**, supported by capture comparison, optimization, verification, and testing.
 
-> Press the remote. Let OpenRF capture, compare, analyze, and optimize the signal, then help turn it into a usable local automation.
+> Press the remote. Let SIGVERN RF capture, compare, analyze, and optimize the signal, then help turn it into a usable local automation.
 
 Community RF profiles are a possible later extension. LoRa integration, additional radio technologies, and optional cloud functionality remain longer-term possibilities rather than current release capabilities.
 
@@ -440,7 +446,7 @@ Use documentation from the branch and release you are running. Historical develo
 
 ## Responsible use
 
-Use OpenRF only with devices you own or are authorized to test.
+Use SIGVERN RF only with devices you own or are authorized to test.
 
 Follow applicable radio regulations, permitted frequency bands, transmission power limits, and duty-cycle requirements. Do not interfere with other radio users or use the project to bypass security systems.
 
@@ -448,31 +454,31 @@ Keep the management interface and MQTT access appropriately protected. Validate 
 
 ## License and credits
 
-OpenRF Platform is released under the **MIT License**. See [LICENSE](LICENSE).
+SIGVERN RF is released under the **MIT License**. See [LICENSE](LICENSE).
 
 Created and maintained by **Kocsis Krisztián**, with implementation assistance, architecture discussions, and documentation support from **ChatGPT (OpenAI)**.
 
-⭐ If OpenRF Platform is useful to you, consider starring the project on GitHub.
+⭐ If SIGVERN RF is useful to you, consider starring the project on GitHub.
 
 ---
 
-<!-- OPENRF_STATS_START -->
-## OpenRF Platform Statistics
+<!-- SIGVERN_STATS_START -->
+## SIGVERN RF Statistics
 
-- Repository views: **1214**
-- Repository clones: **339**
+- Repository views: **1210**
+- Repository clones: **317**
 - Tracking since: **2026-08-07**
 
-<!-- OPENRF_STATS_END -->
+<!-- SIGVERN_STATS_END -->
 
 ---
 
-## ☕ Support OpenRF Platform
+## ☕ Support SIGVERN RF
 
-OpenRF Platform is free and open source.
+SIGVERN RF is free and open source.
 
 If you find the project useful and would like to support its continued development, hardware testing, and future features, you can buy me a coffee:
 
 [☕ Buy me a coffee](https://buymeacoffee.com/krissz55555)
 
-Thank you for supporting OpenRF Platform!
+Thank you for supporting SIGVERN RF!

@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include "radio.h"
 
-constexpr uint8_t OPENRF_SLOT_COUNT = 30;
-constexpr uint8_t OPENRF_SLOT_NAME_MAX = 32;
+constexpr uint8_t SIGVERN_SLOT_COUNT = 30;
+constexpr uint8_t SIGVERN_SLOT_NAME_MAX = 32;
 
 struct SlotInfo {
   uint8_t id = 0;

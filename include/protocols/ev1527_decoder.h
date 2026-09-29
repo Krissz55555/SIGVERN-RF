@@ -83,7 +83,7 @@ struct Ev1527DecodeDiagnostics final {
 // Conservative EV1527/Princeton pulse-distance family classifier.
 // Step 29.5/6 uses established RC-switch-family recognition principles
 // (short/long pulse centers, repeat segmentation, complementary pairs, repeat
-// agreement) but remains an independent OpenRF implementation.
+// agreement) but remains an independent Sigvern implementation.
 //
 // The decoder consumes the untouched full capture synchronously. It owns no
 // capture data, allocates no memory, and exposes MATCH/NO_MATCH through the V2

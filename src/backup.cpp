@@ -7,7 +7,8 @@
 #include "rxslots.h"
 
 namespace {
-constexpr char BACKUP_MAGIC[8] = {'O','R','F','B','K','P','1','\0'};
+constexpr char BACKUP_MAGIC[8] = {'S','G','R','B','K','P','1','\0'};
+constexpr char LEGACY_BACKUP_MAGIC[8] = {'O','R','F','B','K','P','1','\0'};
 constexpr uint16_t BACKUP_VERSION = 1;
 constexpr uint32_t MAX_BACKUP_FILE_SIZE = 256UL * 1024UL;
 
@@ -45,14 +46,14 @@ bool allowedPath(const String& path) {
   if (path == "/config.json") return true;
   if (path.startsWith("/rxslot") && path.endsWith(".bin")) {
     const int n = path.substring(7, path.length() - 4).toInt();
-    return n >= 1 && n <= OPENRF_RX_SLOT_COUNT && path == rxSlotPath(static_cast<uint8_t>(n));
+    return n >= 1 && n <= SIGVERN_RX_SLOT_COUNT && path == rxSlotPath(static_cast<uint8_t>(n));
   }
   if (!path.startsWith("/slots/slot") || !path.endsWith(".bin")) return false;
   const int begin = String("/slots/slot").length();
   const int end = path.length() - 4;
   if (end <= begin) return false;
   const int slot = path.substring(begin, end).toInt();
-  return slot >= 1 && slot <= OPENRF_SLOT_COUNT && path == slotPath(static_cast<uint8_t>(slot));
+  return slot >= 1 && slot <= SIGVERN_SLOT_COUNT && path == slotPath(static_cast<uint8_t>(slot));
 }
 
 bool readExact(File& file, uint8_t* destination, size_t length) {
@@ -133,11 +134,11 @@ bool streamRecord(WiFiClient& client, const String& path, String& error) {
 
 void removeRestoreTemps() {
   LittleFS.remove("/config.restore");
-  for (uint8_t slot = 1; slot <= OPENRF_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_SLOT_COUNT; slot++) {
     String temp = restorePathFor(slotPath(slot));
     if (LittleFS.exists(temp)) LittleFS.remove(temp);
   }
-  for (uint8_t slot = 1; slot <= OPENRF_RX_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_RX_SLOT_COUNT; slot++) {
     String temp = restorePathFor(rxSlotPath(slot));
     if (LittleFS.exists(temp)) LittleFS.remove(temp);
   }
@@ -148,11 +149,12 @@ bool validateBackup(File& file, BackupHeader& header, String& error) {
     error = "Backup header is incomplete";
     return false;
   }
-  if (memcmp(header.magic, BACKUP_MAGIC, sizeof(BACKUP_MAGIC)) != 0 || header.version != BACKUP_VERSION) {
-    error = "Unsupported or invalid OpenRF backup file";
+  if ((memcmp(header.magic, BACKUP_MAGIC, sizeof(BACKUP_MAGIC)) != 0 &&
+       memcmp(header.magic, LEGACY_BACKUP_MAGIC, sizeof(LEGACY_BACKUP_MAGIC)) != 0) || header.version != BACKUP_VERSION) {
+    error = "Unsupported or invalid Sigvern backup file";
     return false;
   }
-  if (header.fileCount == 0 || header.fileCount > OPENRF_SLOT_COUNT + OPENRF_RX_SLOT_COUNT + 1) {
+  if (header.fileCount == 0 || header.fileCount > SIGVERN_SLOT_COUNT + SIGVERN_RX_SLOT_COUNT + 1) {
     error = "Invalid backup file count";
     return false;
   }
@@ -198,13 +200,13 @@ size_t backupCalculateSize(uint16_t& fileCount) {
     total += recordSize("/config.json");
     fileCount++;
   }
-  for (uint8_t slot = 1; slot <= OPENRF_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_SLOT_COUNT; slot++) {
     const String path = slotPath(slot);
     if (!includePath(path)) continue;
     total += recordSize(path);
     fileCount++;
   }
-  for (uint8_t slot = 1; slot <= OPENRF_RX_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_RX_SLOT_COUNT; slot++) {
     const String path = rxSlotPath(slot);
     if (!includePath(path)) continue;
     total += recordSize(path);
@@ -231,11 +233,11 @@ bool backupStreamToClient(WiFiClient& client, String& error) {
   }
 
   if (includePath("/config.json") && !streamRecord(client, "/config.json", error)) return false;
-  for (uint8_t slot = 1; slot <= OPENRF_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_SLOT_COUNT; slot++) {
     const String path = slotPath(slot);
     if (includePath(path) && !streamRecord(client, path, error)) return false;
   }
-  for (uint8_t slot = 1; slot <= OPENRF_RX_SLOT_COUNT; slot++) { const String p = rxSlotPath(slot); if (includePath(p) && !streamRecord(client, p, error)) return false; }
+  for (uint8_t slot = 1; slot <= SIGVERN_RX_SLOT_COUNT; slot++) { const String p = rxSlotPath(slot); if (includePath(p) && !streamRecord(client, p, error)) return false; }
   return true;
 }
 
@@ -295,11 +297,11 @@ bool backupRestoreFromFile(const char* uploadPath, String& error) {
   source.close();
 
   // All files have been extracted successfully. Only now replace live data.
-  for (uint8_t slot = 1; slot <= OPENRF_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_SLOT_COUNT; slot++) {
     const String finalPath = slotPath(slot);
     if (LittleFS.exists(finalPath)) LittleFS.remove(finalPath);
   }
-  for (uint8_t slot = 1; slot <= OPENRF_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_SLOT_COUNT; slot++) {
     const String finalPath = slotPath(slot);
     const String tempPath = restorePathFor(finalPath);
     if (LittleFS.exists(tempPath) && !LittleFS.rename(tempPath, finalPath)) {
@@ -307,11 +309,11 @@ bool backupRestoreFromFile(const char* uploadPath, String& error) {
       removeRestoreTemps(); return false;
     }
   }
-  for (uint8_t slot = 1; slot <= OPENRF_RX_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_RX_SLOT_COUNT; slot++) {
     const String finalPath = rxSlotPath(slot);
     if (LittleFS.exists(finalPath)) LittleFS.remove(finalPath);
   }
-  for (uint8_t slot = 1; slot <= OPENRF_RX_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_RX_SLOT_COUNT; slot++) {
     const String finalPath = rxSlotPath(slot);
     const String tempPath = restorePathFor(finalPath);
     if (LittleFS.exists(tempPath) && !LittleFS.rename(tempPath, finalPath)) {

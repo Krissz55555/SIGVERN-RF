@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-struct OpenRFHardwareStatus {
+struct SigvernHardwareStatus {
   bool radio1Online = false;
   bool radio2Online = false;
   bool loraOnline = false;
@@ -27,4 +27,4 @@ struct OpenRFHardwareStatus {
 void hardwareStatusPrepareBus();
 
 void hardwareStatusBegin();
-OpenRFHardwareStatus hardwareStatusGet();
+SigvernHardwareStatus hardwareStatusGet();

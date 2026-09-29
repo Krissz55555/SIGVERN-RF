@@ -9,7 +9,7 @@ AppConfig config;
 static const char* CONFIG_FILE = "/config.json";
 
 void configResetDefaults() {
-  config.hostname = "OpenRF-Platform";
+  config.hostname = "sigvern-rf";
   config.wifiSsid = "";
   config.wifiPassword = "";
   config.mqttEnabled = false;
@@ -23,8 +23,8 @@ void configResetDefaults() {
   config.radio1Enabled = true;
   config.radio2Enabled = false;
   config.loraEnabled = false;
-  config.radio1FrequencyMhz = OPENRF_RADIO1_DEFAULT_FREQUENCY_MHZ;
-  config.radio2FrequencyMhz = OPENRF_RADIO2_DEFAULT_FREQUENCY_MHZ;
+  config.radio1FrequencyMhz = SIGVERN_RADIO1_DEFAULT_FREQUENCY_MHZ;
+  config.radio2FrequencyMhz = SIGVERN_RADIO2_DEFAULT_FREQUENCY_MHZ;
   config.rxSlotLearnMinRssi = -75;
   config.analyzerMinRssi = -75;
   config.analyzerMinPulseCount = 20;
@@ -63,7 +63,7 @@ bool configLoad() {
     return false;
   }
 
-  config.hostname = doc["hostname"] | "OpenRF-Platform";
+  config.hostname = doc["hostname"] | "sigvern-rf";
   config.wifiSsid = doc["wifi_ssid"] | "";
   config.wifiPassword = doc["wifi_password"] | "";
   config.mqttEnabled = doc["mqtt_enabled"] | false;
@@ -77,14 +77,14 @@ bool configLoad() {
   config.radio1Enabled = doc["radio1_enabled"] | true;
   config.radio2Enabled = doc["radio2_enabled"] | false;
   config.loraEnabled = doc["lora_enabled"] | false;
-  config.radio1FrequencyMhz = doc["radio1_frequency_mhz"] | OPENRF_RADIO1_DEFAULT_FREQUENCY_MHZ;
-  config.radio2FrequencyMhz = doc["radio2_frequency_mhz"] | OPENRF_RADIO2_DEFAULT_FREQUENCY_MHZ;
+  config.radio1FrequencyMhz = doc["radio1_frequency_mhz"] | SIGVERN_RADIO1_DEFAULT_FREQUENCY_MHZ;
+  config.radio2FrequencyMhz = doc["radio2_frequency_mhz"] | SIGVERN_RADIO2_DEFAULT_FREQUENCY_MHZ;
 
   if (config.radio1FrequencyMhz < 430.0F || config.radio1FrequencyMhz > 440.0F) {
-    config.radio1FrequencyMhz = OPENRF_RADIO1_DEFAULT_FREQUENCY_MHZ;
+    config.radio1FrequencyMhz = SIGVERN_RADIO1_DEFAULT_FREQUENCY_MHZ;
   }
   if (config.radio2FrequencyMhz < 867.0F || config.radio2FrequencyMhz > 870.0F) {
-    config.radio2FrequencyMhz = OPENRF_RADIO2_DEFAULT_FREQUENCY_MHZ;
+    config.radio2FrequencyMhz = SIGVERN_RADIO2_DEFAULT_FREQUENCY_MHZ;
   }
   config.rxSlotLearnMinRssi = doc["rxslot_learn_min_rssi"] | -75;
   config.analyzerMinRssi = doc["analyzer_min_rssi"] | -75;
@@ -98,12 +98,16 @@ bool configLoad() {
   config.analyzerDeveloperMode = doc["analyzer_developer_mode"] | false;
 
   config.hostname.trim();
+  // Migrate branding in saved hostnames without resetting any other setting.
+  String legacyName = config.hostname;
+  legacyName.toLowerCase();
+  if (legacyName.indexOf("openrf") >= 0) config.hostname = "sigvern-rf";
   config.wifiSsid.trim();
   config.mqttHost.trim();
   config.mqttUser.trim();
 
   if (config.hostname.length() == 0) {
-    config.hostname = "OpenRF-Platform";
+    config.hostname = "sigvern-rf";
   }
 
   if (config.mqttHost.length() == 0) {

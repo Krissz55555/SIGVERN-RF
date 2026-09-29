@@ -2,7 +2,7 @@
 
 #include <limits.h>
 
-namespace OpenRfRawMatch {
+namespace SigvernRawMatch {
 namespace {
 
 uint32_t magnitude(int16_t value) {
@@ -215,4 +215,4 @@ MatchResult comparePrepared(const int16_t* learned, uint16_t learnedCount,
   return best;
 }
 
-}  // namespace OpenRfRawMatch
+}  // namespace SigvernRawMatch

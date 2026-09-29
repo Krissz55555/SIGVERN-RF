@@ -63,7 +63,7 @@ struct Pt2262DecodeDiagnostics final {
   uint16_t maximumRepeatBaseDeviationX10Percent = 0;
 };
 
-// OpenRF-owned conservative PT2262/SC2262-style tri-state classifier.
+// Sigvern-owned conservative PT2262/SC2262-style tri-state classifier.
 //
 // The implementation follows established protocol-recognition principles only:
 // estimate short/long pulse families, segment repeated frames at a local long

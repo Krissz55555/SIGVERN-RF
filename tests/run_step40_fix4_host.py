@@ -17,7 +17,7 @@ common = ['src/protocol_engine.cpp', 'src/protocol_registry.cpp',
 tests = ['step40_fix4_nvkp01_test', 'step40_fix3_nvkp01_test', 'step40_fix3_event_test', 'step40_fix3_negative_test', 'step29_12_nvkp01_decoder_test',
          'step30_four_module_integration_test',
          'step39_1_nvkp01_v2_authoritative_test', 'step40_raw_match_test']
-with tempfile.TemporaryDirectory(prefix='openrf-fix4-') as tmp:
+with tempfile.TemporaryDirectory(prefix='sigvern-fix4-') as tmp:
     for test in tests:
         exe = str(Path(tmp) / test)
         cmd = [os.environ.get('CXX', 'g++'), '-std=c++11', '-Wall', '-Wextra',

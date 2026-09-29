@@ -487,7 +487,7 @@ h3 {
 .analyzer-stat-grid{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:14px;margin-bottom:14px}
 @media(max-width:800px){.analyzer-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-/* OpenRF Platform v1.0.0 branding */
+/* SIGVERN RF v1.0.0 branding */
 .brand { display:flex; align-items:center; gap:14px; min-width:0; }
 .brand-logo { width:58px; height:58px; flex:0 0 auto; filter:drop-shadow(0 0 14px rgba(45,140,255,.2)); }
 .about-brand { display:flex; align-items:center; gap:18px; margin-bottom:16px; }
@@ -971,10 +971,10 @@ h3 {
   color:var(--danger);
   background:rgba(255,98,98,.13);
   border:1px solid rgba(255,98,98,.38);
-  animation:openrfTunePulse 1.15s ease-in-out infinite;
+  animation:sigvernTunePulse 1.15s ease-in-out infinite;
 }
 .tune-session-badge[hidden]{display:none!important}
-@keyframes openrfTunePulse{
+@keyframes sigvernTunePulse{
   0%,100%{opacity:1}
   50%{opacity:.38}
 }
@@ -1062,3 +1062,5 @@ h3 {
 @media (min-width:1101px){
   .tabs{overflow-x:visible}
 }
+
+.brand-rf { color:#00c8f0; display:inline-block; margin-left:.16em; }

@@ -4,7 +4,7 @@
 #include <esp_freertos_hooks.h>
 
 #include "dualcore.h"
-#include "openrf_wifi.h"
+#include "sigvern_wifi.h"
 #include "radio.h"
 #include "mqtt.h"
 #include "rxslots.h"
@@ -93,9 +93,9 @@ void systemTask(void* parameter) {
       Serial.print(F(", min_heap="));
       Serial.print(minimumObservedHeap);
       Serial.print(F(", max_block="));
-      Serial.print(openrfMaxFreeBlock());
+      Serial.print(sigvernMaxFreeBlock());
       Serial.print(F(", fragmentation="));
-      Serial.print(openrfHeapFragmentation());
+      Serial.print(sigvernHeapFragmentation());
       Serial.print(F("%, system_core="));
       Serial.print(xPortGetCoreID());
       Serial.print(F(", rfq_depth="));
@@ -178,7 +178,7 @@ bool dualCoreBegin() {
   }
 
   BaseType_t result = xTaskCreatePinnedToCore(
-      systemTask, "OpenRF-System", SYSTEM_TASK_STACK, nullptr,
+      systemTask, "Sigvern-System", SYSTEM_TASK_STACK, nullptr,
       SYSTEM_TASK_PRIORITY, &systemTaskHandle, 0);
   if (result != pdPASS) {
     Serial.println(F("SystemTask creation failed"));
@@ -186,7 +186,7 @@ bool dualCoreBegin() {
   }
 
   result = xTaskCreatePinnedToCore(
-      radioTask, "OpenRF-Radio", RADIO_TASK_STACK, nullptr,
+      radioTask, "Sigvern-Radio", RADIO_TASK_STACK, nullptr,
       RADIO_TASK_PRIORITY, &radioTaskHandle, 1);
   if (result != pdPASS) {
     Serial.println(F("RadioTask creation failed"));
@@ -266,7 +266,7 @@ bool rfCommandTestLearnTx(uint8_t repeats) {
 }
 bool rfCommandSendRaw(const int16_t* pulses, uint16_t pulseCount,
                       uint8_t repeats, float frequencyMhz) {
-  if (!pulses || pulseCount == 0 || pulseCount > OPENRF_MAX_RAW_PULSES) return false;
+  if (!pulses || pulseCount == 0 || pulseCount > SIGVERN_MAX_RAW_PULSES) return false;
   RFCommandMessage c;
   c.type = RFCommandType::SEND_RAW;
   c.repeats = repeats;
@@ -278,7 +278,7 @@ bool rfCommandSendRaw(const int16_t* pulses, uint16_t pulseCount,
 bool rfCommandSendRawTuned(const int16_t* pulses, uint16_t pulseCount,
                            uint8_t repeats, uint8_t radioId,
                            float frequencyMhz) {
-  if (!pulses || pulseCount == 0 || pulseCount > OPENRF_MAX_RAW_PULSES ||
+  if (!pulses || pulseCount == 0 || pulseCount > SIGVERN_MAX_RAW_PULSES ||
       (radioId != 1 && radioId != 2)) return false;
   RFCommandMessage c;
   c.type = RFCommandType::SEND_RAW_TUNED;
@@ -310,7 +310,7 @@ bool rfEventPublishFrame(RFEventType type, uint32_t sequence,
                          const V2LearnPayload* v2Learn,
                          bool rawMatchEligible) {
   if (!rfEventQueue || !pulses || pulseCount == 0 ||
-      pulseCount > OPENRF_MAX_RAW_PULSES) {
+      pulseCount > SIGVERN_MAX_RAW_PULSES) {
     return false;
   }
 

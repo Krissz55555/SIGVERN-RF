@@ -11,7 +11,7 @@ struct DecodedRFEvent {
   bool recognized = false;
   bool kinetic = false;
 
-  OpenRfProtocol protocolId = OpenRfProtocol::UNKNOWN;
+  SigvernProtocol protocolId = SigvernProtocol::UNKNOWN;
   String protocol;
   String encoding;
   String deviceId;

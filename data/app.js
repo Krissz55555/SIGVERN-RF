@@ -20,7 +20,7 @@ const elements = {
   backupFile: $("backupFile"), backupRestoreButton: $("backupRestoreButton"), backupProgress: $("backupProgress"), backupMessage: $("backupMessage"), uiVersion: $("uiVersion"),
   memoryDiagState: $("memoryDiagState"), memoryFlashTotal: $("memoryFlashTotal"),
   memoryPsramTotal: $("memoryPsramTotal"), memoryPsramFree: $("memoryPsramFree"),
-  memoryHeapTotal: $("memoryHeapTotal"), memoryHeapFree: $("memoryHeapFree"), memoryOpenrfPsram: $("memoryOpenrfPsram"), memoryAnalyzerPsram: $("memoryAnalyzerPsram"),
+  memoryHeapTotal: $("memoryHeapTotal"), memoryHeapFree: $("memoryHeapFree"), memorySigvernPsram: $("memorySigvernPsram"), memoryAnalyzerPsram: $("memoryAnalyzerPsram"),
   rfHardwareState: $("rfHardwareState"), rf1HardwareState: $("rf1HardwareState"), rf2HardwareState: $("rf2HardwareState"), loraHardwareState: $("loraHardwareState"),
   rf1Enabled: $("rf1Enabled"), rf2Enabled: $("rf2Enabled"), loraEnabled: $("loraEnabled"), saveRfEnableButton: $("saveRfEnableButton"), rfEnableMessage: $("rfEnableMessage"),
   rf1EngineState: $("rf1EngineState"), rf2EngineState: $("rf2EngineState"), loraEngineState: $("loraEngineState"),
@@ -344,8 +344,8 @@ function renderMemoryDiagnostics(d) {
   if (elements.memoryPsramFree) elements.memoryPsramFree.textContent = formatMemoryBytes(d.psram_free);
   if (elements.memoryHeapTotal) elements.memoryHeapTotal.textContent = formatMemoryBytes(d.heap_total);
   if (elements.memoryHeapFree) elements.memoryHeapFree.textContent = formatMemoryBytes(d.free_heap);
-  if (elements.memoryOpenrfPsram) elements.memoryOpenrfPsram.textContent =
-    `${formatMemoryBytes(d.openrf_psram_buffers)} · ${d.openrf_psram_external ? "PSRAM" : "fallback"}`;
+  if (elements.memorySigvernPsram) elements.memorySigvernPsram.textContent =
+    `${formatMemoryBytes(d.sigvern_psram_buffers)} · ${d.sigvern_psram_external ? "PSRAM" : "fallback"}`;
   if (elements.memoryAnalyzerPsram) elements.memoryAnalyzerPsram.textContent =
     `${formatMemoryBytes(d.analyzer_psram_buffers)} · ${d.analyzer_psram_external ? "PSRAM" : "fallback"}`;
   if (elements.memoryDiagState) {
@@ -362,7 +362,7 @@ function setGauge(gauge, label, value) {
 }
 
 function setConnectionBadge(state, text) { elements.connectionBadge.className = `badge badge-${state}`; elements.connectionBadge.textContent = text; }
-const OPENRF_PAGES = new Set([
+const SIGVERN_PAGES = new Set([
   "dashboard", "learn", "slots", "rxslots", "analyzer", "settings", "system", "diagnostics", "about"
 ]);
 
@@ -371,11 +371,11 @@ function pageFromHash() {
     .replace(/^#/, "")
     .trim()
     .toLowerCase();
-  return OPENRF_PAGES.has(requested) ? requested : "dashboard";
+  return SIGVERN_PAGES.has(requested) ? requested : "dashboard";
 }
 
 function showPage(name, updateHash = true) {
-  const page = OPENRF_PAGES.has(name) ? name : "dashboard";
+  const page = SIGVERN_PAGES.has(name) ? name : "dashboard";
 
   document.querySelectorAll(".page").forEach(element => {
     element.classList.toggle("active", element.id === `page-${page}`);
@@ -384,7 +384,7 @@ function showPage(name, updateHash = true) {
     button.classList.toggle("active", button.dataset.page === page);
   });
 
-  // Keep the active OpenRF page through a browser refresh/reconnect without
+  // Keep the active Sigvern page through a browser refresh/reconnect without
   // forcing a full navigation. Example: /#system or /#analyzer.
   if (updateHash && window.location.hash !== `#${page}`) {
     window.history.replaceState(null, "", `#${page}`);
@@ -1730,7 +1730,7 @@ async function rxSlotAction(action,slot,name="",enabled=false,button=null) {
   finally { if(button){button.classList.remove("busy"); if(action!=="learn")button.disabled=false;} }
 }
 
-async function loadConfig() { setSaveMessage("Loading settings..."); elements.saveButton.disabled = true; try { const d = await requestJson("/api/config"); elements.hostname.value = d.hostname || "OpenRF-Platform"; elements.replayCount.value = Number(d.replay_count) >= 1 ? d.replay_count : 1; elements.wifiSsid.value = d.wifi_ssid || ""; elements.wifiPassword.value = ""; elements.wifiPasswordState.textContent = d.wifi_password_set ? "A WiFi password is saved. Leave empty to keep it." : "No WiFi password is saved."; elements.mqttEnabled.checked = Boolean(d.mqtt_enabled); elements.mqttHost.value = d.mqtt_host || ""; elements.mqttPort.value = d.mqtt_port || 1883; elements.mqttUser.value = d.mqtt_user || ""; elements.mqttPassword.value = ""; elements.homeAssistantDiscovery.checked = d.home_assistant_discovery !== false; elements.passwordState.textContent = d.mqtt_password_set ? "A password is saved. Leave empty to keep it." : "No MQTT password is saved."; updateMqttFieldState(); setSaveMessage(""); } catch (e) { setSaveMessage(e.message, "error"); } finally { elements.saveButton.disabled = false; } }
+async function loadConfig() { setSaveMessage("Loading settings..."); elements.saveButton.disabled = true; try { const d = await requestJson("/api/config"); elements.hostname.value = d.hostname || "sigvern-rf"; elements.replayCount.value = Number(d.replay_count) >= 1 ? d.replay_count : 1; elements.wifiSsid.value = d.wifi_ssid || ""; elements.wifiPassword.value = ""; elements.wifiPasswordState.textContent = d.wifi_password_set ? "A WiFi password is saved. Leave empty to keep it." : "No WiFi password is saved."; elements.mqttEnabled.checked = Boolean(d.mqtt_enabled); elements.mqttHost.value = d.mqtt_host || ""; elements.mqttPort.value = d.mqtt_port || 1883; elements.mqttUser.value = d.mqtt_user || ""; elements.mqttPassword.value = ""; elements.homeAssistantDiscovery.checked = d.home_assistant_discovery !== false; elements.passwordState.textContent = d.mqtt_password_set ? "A password is saved. Leave empty to keep it." : "No MQTT password is saved."; updateMqttFieldState(); setSaveMessage(""); } catch (e) { setSaveMessage(e.message, "error"); } finally { elements.saveButton.disabled = false; } }
 async function saveConfig(event) { event.preventDefault(); if (!elements.settingsForm.reportValidity()) return; const payload = { hostname: elements.hostname.value.trim(), wifi_ssid: elements.wifiSsid.value.trim(), wifi_password: elements.wifiPassword.value, replay_count: Number(elements.replayCount.value), mqtt_enabled: elements.mqttEnabled.checked, mqtt_host: elements.mqttHost.value.trim(), mqtt_port: Number(elements.mqttPort.value || 1883), mqtt_user: elements.mqttUser.value.trim(), mqtt_password: elements.mqttPassword.value, home_assistant_discovery: elements.homeAssistantDiscovery.checked }; elements.saveButton.disabled = true; setSaveMessage("Saving..."); try { const r = await postJson("/api/config", payload); elements.wifiPassword.value = ""; elements.mqttPassword.value = ""; setSaveMessage(r.restart_required ? "Configuration saved. Restarting now; reconnect using the device network IP." : (r.message || "Configuration saved"), "success"); } catch (e) { setSaveMessage(e.message, "error"); } finally { elements.saveButton.disabled = false; } }
 
 
@@ -1781,7 +1781,7 @@ async function installFirmware() {
 
 async function restoreBackup() {
   const file = elements.backupFile.files[0];
-  if (!file) { elements.backupMessage.textContent = "Select an .orfbackup file first."; elements.backupMessage.className = "form-message error"; return; }
+  if (!file) { elements.backupMessage.textContent = "Select an .sgrbackup file first."; elements.backupMessage.className = "form-message error"; return; }
   if (!window.confirm("Restore this backup? Current configuration and saved TX slots will be replaced.")) return;
   elements.backupRestoreButton.disabled = true;
   elements.backupProgress.style.width = "0%";

@@ -4,7 +4,7 @@
 #include "../../include/protocol_decoder.h"
 #include "kinetic/kinetic_event.h"
 
-// Unified result of the OpenRF decoder chain.
+// Unified result of the Sigvern decoder chain.
 // "recognized" means a decoder structurally matched the frame.
 // "actionable" means the match was decoded far enough to emit an event.
 struct ProtocolManagerResult {

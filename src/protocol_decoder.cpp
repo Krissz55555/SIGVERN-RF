@@ -12,7 +12,7 @@ constexpr uint8_t MAX_TRITS = 32;
 
 struct Centers { float shortUs = 0; float longUs = 0; bool valid = false; };
 struct Candidate {
-  OpenRfProtocol protocol = OpenRfProtocol::UNKNOWN;
+  SigvernProtocol protocol = SigvernProtocol::UNKNOWN;
   uint8_t symbols = 0;
   uint64_t code = 0;
   uint8_t quality = 0;
@@ -109,7 +109,7 @@ bool decodeBinarySegment(const int16_t* p, uint16_t start, uint16_t end,
     if (diagnostics) diagnostics->rejectReason = LegacyBinaryRejectReason::QUALITY;
     return false;
   }
-  out.protocol = OpenRfProtocol::EV1527_PRINCETON;
+  out.protocol = SigvernProtocol::EV1527_PRINCETON;
   out.symbols = bits; out.code = code; out.quality = static_cast<uint8_t>(constrain(q, 0, 100));
   if (diagnostics) {
     diagnostics->accepted = true;
@@ -143,7 +143,7 @@ bool decodeTriStateSegment(const int16_t* p, uint16_t start, uint16_t end,
   const float meanError = totalError / (trits * 4.0F);
   const int q = static_cast<int>(100.0F - meanError * 100.0F);
   if (q < 72) return false;
-  out.protocol = OpenRfProtocol::PT2262;
+  out.protocol = SigvernProtocol::PT2262;
   out.symbols = trits; out.code = code; out.quality = static_cast<uint8_t>(constrain(q, 0, 100));
   return true;
 }
@@ -153,10 +153,10 @@ void addCandidate(Candidate* list, uint8_t& count, const Candidate& c) {
 }
 } // namespace
 
-const char* protocolName(OpenRfProtocol protocol) {
+const char* protocolName(SigvernProtocol protocol) {
   switch (protocol) {
-    case OpenRfProtocol::EV1527_PRINCETON: return "EV1527/Princeton";
-    case OpenRfProtocol::PT2262: return "PT2262";
+    case SigvernProtocol::EV1527_PRINCETON: return "EV1527/Princeton";
+    case SigvernProtocol::PT2262: return "PT2262";
     default: return "Unknown";
   }
 }
@@ -239,7 +239,7 @@ ProtocolDecodeResult protocolDecodeImpl(const int16_t* pulses, uint16_t count,
   result.pulseLengthUs = static_cast<uint16_t>((centers.shortUs + 0.5F));
   result.repeats = bestRepeats;
   result.quality = best.quality;
-  if (diagnostics && best.protocol == OpenRfProtocol::EV1527_PRINCETON) {
+  if (diagnostics && best.protocol == SigvernProtocol::EV1527_PRINCETON) {
     diagnostics->finalRecognized = true;
     diagnostics->finalBits = best.symbols;
     diagnostics->finalCode = best.code;

@@ -63,7 +63,7 @@ bool Ev1527TxEncoder::encode(const ProtocolTxRequest& request,
     if (!appendPair(pulses, capacity, count, highUs, lowUs)) return false;
   }
 
-  // Proven OpenRF sync model used by the existing EV1527 TX path.
+  // Proven Sigvern sync model used by the existing EV1527 TX path.
   if (!appendPair(pulses, capacity, count, t,
                   t * static_cast<uint32_t>(kProfile.syncLowT))) {
     return false;

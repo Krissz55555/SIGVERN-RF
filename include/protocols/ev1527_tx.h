@@ -5,7 +5,7 @@
 #include "protocol_tx.h"
 
 // Step 36 V2-native EV1527/Princeton TX profile.
-// The timing ratios preserve the proven OpenRF legacy waveform while moving
+// The timing ratios preserve the proven Sigvern legacy waveform while moving
 // ownership into the modular Known Protocol Library.
 struct Ev1527TxProfile final {
   uint8_t symbolCount = 24;

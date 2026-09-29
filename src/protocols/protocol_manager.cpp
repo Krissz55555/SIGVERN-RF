@@ -14,7 +14,7 @@ ProtocolManagerResult decodeClassic(const int16_t* pulses,
   result.actionable = true;
   result.kinetic = false;
   result.protocolName = protocolName(result.classic.protocol);
-  result.encodingName = result.classic.protocol == OpenRfProtocol::PT2262
+  result.encodingName = result.classic.protocol == SigvernProtocol::PT2262
                             ? "Tri-state PWM"
                             : "OOK PWM";
   return result;

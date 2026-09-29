@@ -49,11 +49,11 @@ int main() {
       assert(o.decision == ProtocolEngineDecisionState::UNKNOWN);
       assert(o.matchCount == 0U && !o.normalizedEvent.available);
       if (learned.empty()) learned = s.pulses;
-      int16_t a[OpenRfRawMatch::kMaxPatternPulses]{};
-      int16_t b[OpenRfRawMatch::kMaxPatternPulses]{};
-      const auto pa = OpenRfRawMatch::prepare(learned.data(), learned.size(), a, 512);
-      const auto pb = OpenRfRawMatch::prepare(s.pulses.data(), s.pulses.size(), b, 512);
-      const auto raw = OpenRfRawMatch::comparePrepared(a, pa.pulseCount, b, pb.pulseCount);
+      int16_t a[SigvernRawMatch::kMaxPatternPulses]{};
+      int16_t b[SigvernRawMatch::kMaxPatternPulses]{};
+      const auto pa = SigvernRawMatch::prepare(learned.data(), learned.size(), a, 512);
+      const auto pb = SigvernRawMatch::prepare(s.pulses.data(), s.pulses.size(), b, 512);
+      const auto raw = SigvernRawMatch::comparePrepared(a, pa.pulseCount, b, pb.pulseCount);
       assert(raw.matched);
       std::printf("  Engine UNKNOWN; RAW match against B-01: %u%%\n", raw.similarity);
     }

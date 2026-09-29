@@ -32,12 +32,12 @@ class RadioGuard {
 };
 
 CC1101 cc1101Radio1 = new Module(
-    OPENRF_CC1101_CS_PIN, OPENRF_CC1101_GDO0_PIN,
-    RADIOLIB_NC, OPENRF_CC1101_GDO2_PIN);
+    SIGVERN_CC1101_CS_PIN, SIGVERN_CC1101_GDO0_PIN,
+    RADIOLIB_NC, SIGVERN_CC1101_GDO2_PIN);
 
 CC1101 cc1101Radio2 = new Module(
-    OPENRF_CC1101_2_CS_PIN, OPENRF_CC1101_2_GDO0_PIN,
-    RADIOLIB_NC, OPENRF_CC1101_2_GDO2_PIN);
+    SIGVERN_CC1101_2_CS_PIN, SIGVERN_CC1101_2_GDO0_PIN,
+    RADIOLIB_NC, SIGVERN_CC1101_2_GDO2_PIN);
 
 constexpr uint32_t RSSI_REFRESH_INTERVAL_MS = 5;
 
@@ -147,7 +147,7 @@ struct RadioChannel {
   uint32_t tuneSessionExpiresAtMs = 0; // 0 = not in a System tuning session
   uint32_t lastRssiReadMs = 0;
 
-  volatile int16_t rxPulses[OPENRF_ISR_CAPTURE_PULSES] = {0};
+  volatile int16_t rxPulses[SIGVERN_ISR_CAPTURE_PULSES] = {0};
   volatile uint16_t rxCount = 0;
   volatile uint32_t lastEdgeUs = 0;
   volatile int lastLevel = LOW;
@@ -190,31 +190,31 @@ RadioChannel* channelById(uint8_t radioId) {
 
 void configureChannels() {
   channels[0].id = 1;
-  channels[0].defaultFrequencyMHz = OPENRF_RADIO1_DEFAULT_FREQUENCY_MHZ;
+  channels[0].defaultFrequencyMHz = SIGVERN_RADIO1_DEFAULT_FREQUENCY_MHZ;
   // Step 26.2.1: restore a persisted TUNED frequency after reboot.
   // A restored session receives a fresh 15-minute safety window.
   channels[0].frequencyMHz = config.radio1FrequencyMhz;
   if (channels[0].frequencyMHz < 430.0F || channels[0].frequencyMHz > 440.0F)
     channels[0].frequencyMHz = channels[0].defaultFrequencyMHz;
   channels[0].radio = &cc1101Radio1;
-  channels[0].gdo0Pin = OPENRF_CC1101_GDO0_PIN;
+  channels[0].gdo0Pin = SIGVERN_CC1101_GDO0_PIN;
   channels[0].mux = &rxMux1;
   channels[0].enabled = config.radio1Enabled;
   if (fabsf(channels[0].frequencyMHz - channels[0].defaultFrequencyMHz) >
-      OPENRF_FREQUENCY_TUNED_EPSILON_MHZ)
+      SIGVERN_FREQUENCY_TUNED_EPSILON_MHZ)
     channels[0].tuneSessionExpiresAtMs = millis() + TUNE_SESSION_DURATION_MS;
 
   channels[1].id = 2;
-  channels[1].defaultFrequencyMHz = OPENRF_RADIO2_DEFAULT_FREQUENCY_MHZ;
+  channels[1].defaultFrequencyMHz = SIGVERN_RADIO2_DEFAULT_FREQUENCY_MHZ;
   channels[1].frequencyMHz = config.radio2FrequencyMhz;
   if (channels[1].frequencyMHz < 867.0F || channels[1].frequencyMHz > 870.0F)
     channels[1].frequencyMHz = channels[1].defaultFrequencyMHz;
   channels[1].radio = &cc1101Radio2;
-  channels[1].gdo0Pin = OPENRF_CC1101_2_GDO0_PIN;
+  channels[1].gdo0Pin = SIGVERN_CC1101_2_GDO0_PIN;
   channels[1].mux = &rxMux2;
   channels[1].enabled = config.radio2Enabled;
   if (fabsf(channels[1].frequencyMHz - channels[1].defaultFrequencyMHz) >
-      OPENRF_FREQUENCY_TUNED_EPSILON_MHZ)
+      SIGVERN_FREQUENCY_TUNED_EPSILON_MHZ)
     channels[1].tuneSessionExpiresAtMs = millis() + TUNE_SESSION_DURATION_MS;
 }
 
@@ -262,7 +262,7 @@ void IRAM_ATTR captureEdge(RadioChannel* ch) {
     return;
   }
 
-  if (ch->rxCount < OPENRF_ISR_CAPTURE_PULSES) {
+  if (ch->rxCount < SIGVERN_ISR_CAPTURE_PULSES) {
     const int32_t signedDuration =
         ch->lastLevel == HIGH ? static_cast<int32_t>(duration)
                               : -static_cast<int32_t>(duration);
@@ -279,7 +279,7 @@ void IRAM_ATTR captureEdge(RadioChannel* ch) {
       ch->rxPulses[ch->rxCount++] = static_cast<int16_t>(signedDuration);
     }
 
-    if (ch->rxCount >= OPENRF_ISR_CAPTURE_PULSES) {
+    if (ch->rxCount >= SIGVERN_ISR_CAPTURE_PULSES) {
       ch->frameReady = true;
       ch->bufferFullFrames++;
     }
@@ -359,11 +359,11 @@ bool initializeChannel(RadioChannel& ch) {
 
   ch.lastError = ch.radio->begin(
       ch.frequencyMHz,
-      OPENRF_RADIO_BIT_RATE_KBPS,
-      OPENRF_RADIO_FREQUENCY_DEVIATION_KHZ,
-      OPENRF_RADIO_RX_BANDWIDTH_KHZ,
-      OPENRF_RADIO_OUTPUT_POWER_DBM,
-      OPENRF_RADIO_PREAMBLE_BITS);
+      SIGVERN_RADIO_BIT_RATE_KBPS,
+      SIGVERN_RADIO_FREQUENCY_DEVIATION_KHZ,
+      SIGVERN_RADIO_RX_BANDWIDTH_KHZ,
+      SIGVERN_RADIO_OUTPUT_POWER_DBM,
+      SIGVERN_RADIO_PREAMBLE_BITS);
 
   if (ch.lastError != RADIOLIB_ERR_NONE) {
     ch.mode = RadioMode::ERROR;
@@ -458,13 +458,13 @@ bool RadioManager::begin() {
   RadioGuard guard;
 
   SPI.begin(
-      OPENRF_CC1101_SCK_PIN,
-      OPENRF_CC1101_MISO_PIN,
-      OPENRF_CC1101_MOSI_PIN,
-      OPENRF_CC1101_CS_PIN);
+      SIGVERN_CC1101_SCK_PIN,
+      SIGVERN_CC1101_MISO_PIN,
+      SIGVERN_CC1101_MOSI_PIN,
+      SIGVERN_CC1101_CS_PIN);
 
-  digitalWrite(OPENRF_CC1101_CS_PIN, HIGH);
-  digitalWrite(OPENRF_CC1101_2_CS_PIN, HIGH);
+  digitalWrite(SIGVERN_CC1101_CS_PIN, HIGH);
+  digitalWrite(SIGVERN_CC1101_2_CS_PIN, HIGH);
 
   configureChannels();
 
@@ -706,7 +706,7 @@ void RadioManager::finalizeFrame(uint8_t radioId) {
 
   portENTER_CRITICAL(ch->mux);
   count = ch->rxCount;
-  if (count > OPENRF_MAX_RAW_PULSES) count = OPENRF_MAX_RAW_PULSES;
+  if (count > SIGVERN_MAX_RAW_PULSES) count = SIGVERN_MAX_RAW_PULSES;
 
   for (uint16_t i = 0; i < count; i++) {
     lastRaw[i] = ch->rxPulses[i];
@@ -1082,7 +1082,7 @@ bool RadioManager::sendRaw(const int16_t* pulses, uint16_t pulseCount,
   RadioGuard guard;
 
   if (!pulses || pulseCount == 0 ||
-      pulseCount > OPENRF_MAX_RAW_PULSES) {
+      pulseCount > SIGVERN_MAX_RAW_PULSES) {
     return false;
   }
 
@@ -1097,7 +1097,7 @@ bool RadioManager::sendRaw(const int16_t* pulses, uint16_t pulseCount,
   if (repeats > 10) repeats = 10;
 
   // Pause both receivers during TX to prevent the other CC1101 from capturing
-  // OpenRF's own transmission.
+  // Sigvern's own transmission.
   bool wasReceiving[2] = {
       channels[0].initialized && channels[0].mode == RadioMode::RX,
       channels[1].initialized && channels[1].mode == RadioMode::RX
@@ -1157,7 +1157,7 @@ bool RadioManager::sendRawTuned(const int16_t* pulses, uint16_t pulseCount,
                                 float frequencyMHz) {
   RadioGuard guard;
 
-  if (!pulses || pulseCount == 0 || pulseCount > OPENRF_MAX_RAW_PULSES ||
+  if (!pulses || pulseCount == 0 || pulseCount > SIGVERN_MAX_RAW_PULSES ||
       (radioId != 1 && radioId != 2)) return false;
 
   RadioChannel* target = channelById(radioId);
@@ -1609,7 +1609,7 @@ bool RadioManager::setOperatingFrequency(uint8_t radioId,
   // Only explicit System tuning uses setOperatingFrequency(). A non-default
   // frequency therefore starts/restarts a 15-minute tuning session.
   if (fabsf(frequencyMHz - ch->defaultFrequencyMHz) >
-      OPENRF_FREQUENCY_TUNED_EPSILON_MHZ) {
+      SIGVERN_FREQUENCY_TUNED_EPSILON_MHZ) {
     ch->tuneSessionExpiresAtMs = millis() + TUNE_SESSION_DURATION_MS;
   } else {
     ch->tuneSessionExpiresAtMs = 0;
@@ -1655,7 +1655,7 @@ bool RadioManager::isFrequencyTuned(uint8_t radioId) const {
   RadioChannel* ch = channelById(radioId);
   if (!ch) return false;
   return fabsf(ch->frequencyMHz - ch->defaultFrequencyMHz) >
-         OPENRF_FREQUENCY_TUNED_EPSILON_MHZ;
+         SIGVERN_FREQUENCY_TUNED_EPSILON_MHZ;
 }
 
 uint32_t RadioManager::getTuneSessionRemainingMs(uint8_t radioId) const {

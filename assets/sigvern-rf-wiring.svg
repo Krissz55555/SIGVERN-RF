@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="930" viewBox="0 0 1400 930" role="img" aria-labelledby="title description">
-  <title id="title">OpenRF Platform ESP32-S3 wiring</title>
+  <title id="title">SIGVERN RF ESP32-S3 wiring</title>
   <desc id="description">GPIO wiring for two CC1101 radios, an optional SX1276 module, and reserved I2C pins.</desc>
   <defs>
     <style>
@@ -25,7 +25,7 @@
   </defs>
 
   <rect class="bg" width="1400" height="930" rx="20"/>
-  <text class="title" x="700" y="54" text-anchor="middle">OpenRF Platform — ESP32-S3 N16R8 wiring</text>
+  <text class="title" x="700" y="54" text-anchor="middle">SIGVERN RF — ESP32-S3 N16R8 wiring</text>
   <text class="small" x="700" y="82" text-anchor="middle">Dual CC1101 radios, optional SX1276 detection, and reserved I2C</text>
 
   <rect class="main" x="500" y="120" width="400" height="410" rx="20"/>

@@ -3,7 +3,7 @@
 
 #include "version.h"
 #include "config.h"
-#include "openrf_wifi.h"
+#include "sigvern_wifi.h"
 #include "web.h"
 #include "radio.h"
 #include "mqtt.h"
@@ -22,13 +22,13 @@ bool delayedMemoryReportPrinted = false;
 uint32_t bootStartedAtMs = 0;
 
 void printMemoryDiagnostics() {
-  Serial.println(F("=== OpenRF ESP32-S3 Memory ==="));
+  Serial.println(F("=== Sigvern ESP32-S3 Memory ==="));
   Serial.print(F("Flash total: ")); Serial.print(ESP.getFlashChipSize() / (1024.0 * 1024.0), 2); Serial.println(F(" MB"));
   Serial.print(F("PSRAM total: ")); Serial.print(ESP.getPsramSize() / (1024.0 * 1024.0), 2); Serial.println(F(" MB"));
   Serial.print(F("PSRAM free:  ")); Serial.print(ESP.getFreePsram() / (1024.0 * 1024.0), 2); Serial.println(F(" MB"));
   Serial.print(F("Heap total:  ")); Serial.print(ESP.getHeapSize() / 1024.0, 1); Serial.println(F(" KB"));
   Serial.print(F("Heap free:   ")); Serial.print(ESP.getFreeHeap() / 1024.0, 1); Serial.println(F(" KB"));
-  Serial.print(F("OpenRF PSRAM buffers: ")); Serial.print(psramOpenRFAllocatedBytes() / 1024.0, 1);
+  Serial.print(F("Sigvern PSRAM buffers: ")); Serial.print(psramSigvernAllocatedBytes() / 1024.0, 1);
   Serial.print(F(" KB (")); Serial.print(psramBuffersUsingExternalRam() ? F("external") : F("internal fallback")); Serial.println(F(")"));
   Serial.print(F("Analyzer PSRAM stores: ")); Serial.print(analyzerPsramAllocatedBytes() / 1024.0, 1);
   Serial.print(F(" KB (")); Serial.print(analyzerUsingExternalRam() ? F("external") : F("internal fallback")); Serial.println(F(")"));
@@ -74,10 +74,10 @@ void setup() {
   // Keep startup order identical to the stable ESP32-S3 port. Only the
   // recurring loop work is split between the two pinned FreeRTOS tasks.
   if (!psramBuffersBegin()) {
-    Serial.println(F("FATAL: PSRAM/OpenRF buffer initialization failed"));
+    Serial.println(F("FATAL: PSRAM/Sigvern buffer initialization failed"));
     return;
   }
-  openrfScratch = psramSystemScratch();
+  sigvernScratch = psramSystemScratch();
   if (!analyzerBegin()) {
     Serial.println(F("FATAL: Analyzer PSRAM initialization failed"));
     return;
@@ -123,7 +123,7 @@ void loop() {
     printMemoryDiagnostics();
   }
 
-  // OpenRF recurring work runs in pinned FreeRTOS tasks after setup(). Keep the
+  // Sigvern recurring work runs in pinned FreeRTOS tasks after setup(). Keep the
   // Arduino loop task dormant so it does not compete with RadioTask on Core 1.
   vTaskDelay(pdMS_TO_TICKS(1000));
 }

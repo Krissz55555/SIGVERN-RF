@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "config.h"
-#include "openrf_wifi.h"
+#include "sigvern_wifi.h"
 
 namespace {
-const char* AP_SSID = "OpenRF-Platform";
+const char* AP_SSID = "SIGVERN-RF-Setup";
 wl_status_t lastStatus = WL_IDLE_STATUS;
 bool setupApRunning = false;
 uint32_t stationConnectStartedMs = 0;

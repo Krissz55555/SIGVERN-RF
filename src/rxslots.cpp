@@ -64,10 +64,10 @@ struct HeaderV2 {
   char name[33];
 };
 
-uint32_t lastMatchedAt[OPENRF_RX_SLOT_COUNT + 1] = {};
-uint32_t matchCounts[OPENRF_RX_SLOT_COUNT + 1] = {};
-float lastRssi[OPENRF_RX_SLOT_COUNT + 1] = {};
-uint8_t lastQuality[OPENRF_RX_SLOT_COUNT + 1] = {};
+uint32_t lastMatchedAt[SIGVERN_RX_SLOT_COUNT + 1] = {};
+uint32_t matchCounts[SIGVERN_RX_SLOT_COUNT + 1] = {};
+float lastRssi[SIGVERN_RX_SLOT_COUNT + 1] = {};
+uint8_t lastQuality[SIGVERN_RX_SLOT_COUNT + 1] = {};
 uint8_t learningSlot = 0;
 uint32_t learningStartedAtMs = 0;
 String learningName;
@@ -77,7 +77,7 @@ uint32_t weakLearnRejected = 0;
 float lastWeakLearnRssi = -127.0F;
 
 String path(uint8_t slot) { return "/rxslot" + String(slot) + ".bin"; }
-bool valid(uint8_t slot) { return slot >= 1 && slot <= OPENRF_RX_SLOT_COUNT; }
+bool valid(uint8_t slot) { return slot >= 1 && slot <= SIGVERN_RX_SLOT_COUNT; }
 
 void copyText(char* dst, size_t size, const String& value) {
   value.substring(0, size - 1).toCharArray(dst, size);
@@ -198,7 +198,7 @@ bool migrateV2(uint8_t slot, const HeaderV2& old, HeaderV4& h) {
   h.frequencyHz = 0;
   copyText(h.name, sizeof(h.name), String(old.name));
   copyText(h.protocol, sizeof(h.protocol),
-           protocolName(static_cast<OpenRfProtocol>(old.protocol)));
+           protocolName(static_cast<SigvernProtocol>(old.protocol)));
   const String code = hexCode(old.code);
   copyText(h.deviceId, sizeof(h.deviceId), code);
   copyText(h.code, sizeof(h.code), code);
@@ -238,7 +238,7 @@ bool readHeader(uint8_t slot, HeaderV4& h) {
 
 bool duplicateExistsV2(uint8_t exceptSlot, ProtocolId protocol, uint64_t code) {
   const String codeText = hexCode(code);
-  for (uint8_t i = 1; i <= OPENRF_RX_SLOT_COUNT; ++i) {
+  for (uint8_t i = 1; i <= SIGVERN_RX_SLOT_COUNT; ++i) {
     if (i == exceptSlot) continue;
     HeaderV4 h{};
     if (!readHeader(i, h)) continue;
@@ -430,7 +430,7 @@ void rxSlotsHandleV2Action(const RFEventMessage& event) {
 
   const String code = hexCode(event.v2Action.code);
 
-  for (uint8_t slot = 1; slot <= OPENRF_RX_SLOT_COUNT; slot++) {
+  for (uint8_t slot = 1; slot <= SIGVERN_RX_SLOT_COUNT; slot++) {
     HeaderV4 h{};
     if (!readHeader(slot, h) || !h.enabled) continue;
 
@@ -548,7 +548,7 @@ bool rxSlotSend(uint8_t slot, uint8_t repeats) {
   request.requestedRepeats = repeats;
 
   ProtocolTxPlan plan;
-  if (!tx->encode(request, openrfScratch, OPENRF_MAX_RAW_PULSES, plan) ||
+  if (!tx->encode(request, sigvernScratch, SIGVERN_MAX_RAW_PULSES, plan) ||
       plan.pulseCount == 0U || plan.transmitRepeats == 0U) {
     protocolTxDiagnosticsRecord(v2Protocol, numericCode, h.radioId,
                                 h.frequencyHz / 1000000.0F, false, 0,
@@ -564,7 +564,7 @@ bool rxSlotSend(uint8_t slot, uint8_t repeats) {
   Serial.print(F(", protocol repeats=")); Serial.println(plan.protocolRepeats);
 
   const bool ok = rfCommandSendRawTuned(
-      openrfScratch, plan.pulseCount, plan.transmitRepeats, h.radioId,
+      sigvernScratch, plan.pulseCount, plan.transmitRepeats, h.radioId,
       h.frequencyHz / 1000000.0F);
   protocolTxDiagnosticsRecord(
       v2Protocol, numericCode, h.radioId, h.frequencyHz / 1000000.0F, ok,
@@ -589,7 +589,7 @@ RxSlotInfo rxSlotGetInfo(uint8_t slot) {
   info.matchCount = matchCounts[slot];
   info.lastRssi = lastRssi[slot]; info.lastQuality = lastQuality[slot]; return info;
 }
-uint8_t rxSlotCountUsed() { uint8_t n=0; for(uint8_t i=1;i<=OPENRF_RX_SLOT_COUNT;i++){HeaderV4 h{};if(readHeader(i,h))n++;}return n; }
+uint8_t rxSlotCountUsed() { uint8_t n=0; for(uint8_t i=1;i<=SIGVERN_RX_SLOT_COUNT;i++){HeaderV4 h{};if(readHeader(i,h))n++;}return n; }
 const char* rxSlotLearnState() { return learnState.c_str(); }
 const char* rxSlotLearnSource() { return learnSource.c_str(); }
 uint8_t rxSlotLearningId() { return learningSlot; }

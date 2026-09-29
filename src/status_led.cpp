@@ -8,8 +8,8 @@ namespace {
 
 void writeBootRgb(uint8_t red, uint8_t green, uint8_t blue) {
   // Support both ESP32-S3-DevKitC-1 RGB LED board revisions.
-  neopixelWrite(OPENRF_RGB_LED_PIN_V10, red, green, blue);
-  neopixelWrite(OPENRF_RGB_LED_PIN_V11, red, green, blue);
+  neopixelWrite(SIGVERN_RGB_LED_PIN_V10, red, green, blue);
+  neopixelWrite(SIGVERN_RGB_LED_PIN_V11, red, green, blue);
 }
 
 void ledOff() {

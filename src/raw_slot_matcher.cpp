@@ -24,25 +24,25 @@ struct CachedRawSlot {
   uint32_t lastEmitAtMs = 0;
 };
 
-CachedRawSlot cache[OPENRF_SLOT_COUNT + 1];
+CachedRawSlot cache[SIGVERN_SLOT_COUNT + 1];
 int16_t* patternStorage = nullptr;
 RawSlotMatcherDiagnostics diagnostics;
 
 int16_t* slotPattern(uint8_t slot) {
-  if (!patternStorage || slot < 1 || slot > OPENRF_SLOT_COUNT) return nullptr;
+  if (!patternStorage || slot < 1 || slot > SIGVERN_SLOT_COUNT) return nullptr;
   return patternStorage +
-         static_cast<size_t>(slot - 1U) * OpenRfRawMatch::kMaxPatternPulses;
+         static_cast<size_t>(slot - 1U) * SigvernRawMatch::kMaxPatternPulses;
 }
 
 bool validSlot(uint8_t slot) {
-  return slot >= 1U && slot <= OPENRF_SLOT_COUNT;
+  return slot >= 1U && slot <= SIGVERN_SLOT_COUNT;
 }
 
 bool allocatePatternStorage() {
   if (patternStorage) return true;
   const size_t pulseCapacity =
-      static_cast<size_t>(OPENRF_SLOT_COUNT) *
-      OpenRfRawMatch::kMaxPatternPulses;
+      static_cast<size_t>(SIGVERN_SLOT_COUNT) *
+      SigvernRawMatch::kMaxPatternPulses;
   const size_t bytes = pulseCapacity * sizeof(int16_t);
 
   void* memory = nullptr;
@@ -72,7 +72,7 @@ void resetCacheEntry(uint8_t slot, bool resetStats) {
   int16_t* const destination = slotPattern(slot);
   if (destination) {
     memset(destination, 0,
-           OpenRfRawMatch::kMaxPatternPulses * sizeof(int16_t));
+           SigvernRawMatch::kMaxPatternPulses * sizeof(int16_t));
   }
 }
 
@@ -88,7 +88,7 @@ bool rawSlotMatcherBegin() {
   }
 
   uint8_t loaded = 0U;
-  for (uint8_t slot = 1U; slot <= OPENRF_SLOT_COUNT; ++slot) {
+  for (uint8_t slot = 1U; slot <= SIGVERN_SLOT_COUNT; ++slot) {
     if (rawSlotMatcherReload(slot)) ++loaded;
     yield();
   }
@@ -99,24 +99,24 @@ bool rawSlotMatcherBegin() {
 }
 
 bool rawSlotMatcherReload(uint8_t slot) {
-  if (!validSlot(slot) || !patternStorage || !openrfScratch) return false;
+  if (!validSlot(slot) || !patternStorage || !sigvernScratch) return false;
 
   const RawSlotMatchStats previousStats = cache[slot].stats;
   const uint32_t previousFingerprint = cache[slot].fingerprint;
   resetCacheEntry(slot, true);
 
   SlotInfo info;
-  if (!storageLoadSlot(slot, openrfScratch, OPENRF_MAX_RAW_PULSES, info)) {
+  if (!storageLoadSlot(slot, sigvernScratch, SIGVERN_MAX_RAW_PULSES, info)) {
     return false;
   }
 
   int16_t* const destination = slotPattern(slot);
   if (!destination) return false;
 
-  const OpenRfRawMatch::PreparedPattern prepared = OpenRfRawMatch::prepare(
-      openrfScratch, info.pulseCount, destination,
-      OpenRfRawMatch::kMaxPatternPulses);
-  if (prepared.pulseCount < OpenRfRawMatch::kMinimumUsefulPulses) {
+  const SigvernRawMatch::PreparedPattern prepared = SigvernRawMatch::prepare(
+      sigvernScratch, info.pulseCount, destination,
+      SigvernRawMatch::kMaxPatternPulses);
+  if (prepared.pulseCount < SigvernRawMatch::kMinimumUsefulPulses) {
     resetCacheEntry(slot, true);
     return false;
   }
@@ -151,18 +151,18 @@ void rawSlotMatcherHandleRFEvent(const RFEventMessage& event) {
     return;
   }
 
-  int16_t incoming[OpenRfRawMatch::kMaxPatternPulses];
-  const OpenRfRawMatch::PreparedPattern prepared = OpenRfRawMatch::prepare(
+  int16_t incoming[SigvernRawMatch::kMaxPatternPulses];
+  const SigvernRawMatch::PreparedPattern prepared = SigvernRawMatch::prepare(
       event.pulses, event.pulseCount, incoming,
-      OpenRfRawMatch::kMaxPatternPulses);
-  if (prepared.pulseCount < OpenRfRawMatch::kMinimumUsefulPulses) return;
+      SigvernRawMatch::kMaxPatternPulses);
+  if (prepared.pulseCount < SigvernRawMatch::kMinimumUsefulPulses) return;
 
   uint8_t bestSlot = 0U;
-  OpenRfRawMatch::MatchResult bestResult;
+  SigvernRawMatch::MatchResult bestResult;
   uint8_t bestCandidateSlot = 0U;
-  OpenRfRawMatch::MatchResult bestCandidateResult;
+  SigvernRawMatch::MatchResult bestCandidateResult;
 
-  for (uint8_t slot = 1U; slot <= OPENRF_SLOT_COUNT; ++slot) {
+  for (uint8_t slot = 1U; slot <= SIGVERN_SLOT_COUNT; ++slot) {
     CachedRawSlot& entry = cache[slot];
     if (!entry.used || entry.patternCount == 0U) continue;
 
@@ -176,8 +176,8 @@ void rawSlotMatcherHandleRFEvent(const RFEventMessage& event) {
       continue;
     }
 
-    const OpenRfRawMatch::MatchResult result =
-        OpenRfRawMatch::comparePrepared(
+    const SigvernRawMatch::MatchResult result =
+        SigvernRawMatch::comparePrepared(
             slotPattern(slot), entry.patternCount,
             incoming, prepared.pulseCount);
 

@@ -1,4 +1,4 @@
-name: OpenRF Traffic Stats
+name: Sigvern Traffic Stats
 
 on:
   schedule:
@@ -87,16 +87,16 @@ jobs:
           readme = readme_path.read_text()
 
           block = (
-              "<!-- OPENRF_STATS_START -->\n"
-              "## OpenRF Platform Statistics\n\n"
+              "<!-- SIGVERN_STATS_START -->\n"
+              "## SIGVERN RF Statistics\n\n"
               f"- Repository views: **{total_views}**\n"
               f"- Repository clones: **{total_clones}**\n"
               f"- Tracking since: **{tracking_since}**\n\n"
-              "<!-- OPENRF_STATS_END -->"
+              "<!-- SIGVERN_STATS_END -->"
           )
 
           pattern = re.compile(
-              r"<!-- OPENRF_STATS_START -->.*?<!-- OPENRF_STATS_END -->",
+              r"<!-- SIGVERN_STATS_START -->.*?<!-- SIGVERN_STATS_END -->",
               re.S
           )
 

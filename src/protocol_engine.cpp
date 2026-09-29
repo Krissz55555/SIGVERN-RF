@@ -7,11 +7,11 @@
 #include "protocols/ht12e_decoder.h"
 #include "protocols/known_protocol_library.h"
 
-#ifndef OPENRF_PROTOCOL_ENGINE_DEBUG
-#define OPENRF_PROTOCOL_ENGINE_DEBUG 0
+#ifndef SIGVERN_PROTOCOL_ENGINE_DEBUG
+#define SIGVERN_PROTOCOL_ENGINE_DEBUG 0
 #endif
 
-#if OPENRF_PROTOCOL_ENGINE_DEBUG
+#if SIGVERN_PROTOCOL_ENGINE_DEBUG
 #include <Arduino.h>
 #endif
 
@@ -75,7 +75,7 @@ ProtocolEngineObservation protocolEngineObserve(const RawCapture& capture) {
       observation.noMatchCount++;
     }
 
-#if OPENRF_PROTOCOL_ENGINE_DEBUG
+#if SIGVERN_PROTOCOL_ENGINE_DEBUG
     if (decoder->protocolId() == ProtocolId::EV1527_PRINCETON) {
       Serial.print(F("[V2] EV1527 "));
       Serial.println(result.matched() ? F("MATCH") : F("NO_MATCH"));
