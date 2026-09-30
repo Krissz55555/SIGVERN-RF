@@ -6,9 +6,9 @@
 
 **Open-source RF gateway and signal-analysis platform for ESP32-S3, dual CC1101 radios, and local Home Assistant integration.**
 
-**Development version: v2.0.0-beta.3 (release preparation)**
+**Current release: v2.0.0-beta.3**
 
-Previously OpenRF Platform. The upcoming beta.3 release introduces the SIGVERN RF identity and MQTT/HA migration while preserving the beta.2 RF engine. Read [REBRAND_MIGRATION.md](REBRAND_MIGRATION.md) before upgrading.
+Previously OpenRF Platform. v2.0.0-beta.3 introduces the SIGVERN RF identity and MQTT/HA migration while preserving the proven V2 RF engine. Read [REBRAND_MIGRATION.md](REBRAND_MIGRATION.md) before upgrading.
 
 > SIGVERN RF v2.0.0-beta.2 goes beyond the ESP32-S3 migration delivered in beta.1. It establishes the RF capture, normalization, protocol-decision, diagnostics, and learned-signal infrastructure needed for the future **Deep Analyzer**.
 
@@ -22,7 +22,7 @@ The name expands to **Signal Intelligence Gateway for Versatile Event Recognitio
 
 ## Release status and highlights
 
-v2.0.0-beta.2 is the second public beta of the ESP32-S3 generation. While beta.1 established the ESP32-S3 N16R8 platform, beta.2 delivers the dual-radio V2 RF architecture, modular Protocol Engine, bidirectional RAW workflow, expanded diagnostics, and Deep Analyzer foundations. ESP32-S3 is the active development platform; the ESP8266 implementation remains available separately as a legacy release.
+v2.0.0-beta.3 is the current public beta of the ESP32-S3 generation. While beta.1 established the ESP32-S3 N16R8 platform, the V2 generation delivers the dual-radio RF architecture, modular Protocol Engine, bidirectional RAW workflow, expanded diagnostics, and Deep Analyzer foundations. ESP32-S3 is the active development platform; the ESP8266 implementation remains available separately as a legacy release.
 
 The main improvements are:
 
@@ -308,6 +308,16 @@ Keep SPI and interrupt wires short, add local decoupling close to each RF module
 -  USB data cable. 
 -  PlatformIO, typically through Visual Studio Code. 
 
+### Browser USB installer (recommended for a new ESP32-S3)
+
+Install the current release directly from a desktop browser:
+
+**[Open the SIGVERN RF USB installer](https://openrfplatform.com/installation-esp32s3.html#web-install)**
+
+Connect the ESP32-S3 with a USB data cable, select its serial port, and the installer writes the matching firmware and LittleFS images in one step. Use desktop Chrome, Edge, or Firefox; iPhone and iPad browsers do not provide the required USB serial access.
+
+> **Back up an existing device first.** The installer replaces LittleFS, including Wi-Fi, MQTT, Analyzer settings, and saved slots. It is best suited to a new board; restore a compatible backup after installation when required.
+
 ### Build and upload
 
 1.  Open the project in Visual Studio Code with PlatformIO. 
@@ -317,10 +327,10 @@ Keep SPI and interrupt wires short, add local decoupling close to each RF module
 5.  Run **Upload** to install the firmware. 
 6.  Run **Upload Filesystem Image** for the initial installation and whenever the WebUI files in `data/` change. 
 
-For prebuilt installation, use matching firmware and LittleFS images from the same release:
+For manual prebuilt installation, use matching firmware and LittleFS images from the same release:
 
-- `SIGVERN-RF-v2.0.0-beta.2-rebrand.1-ESP32S3-firmware.bin` 
-- `SIGVERN-RF-v2.0.0-beta.2-rebrand.1-ESP32S3-littlefs.bin` 
+- `SIGVERN-RF-v2.0.0-beta.3-ESP32S3-firmware.bin`
+- `SIGVERN-RF-v2.0.0-beta.3-ESP32S3-littlefs.bin`
 
 Follow the release’s flashing instructions and partition layout.
 
@@ -427,7 +437,7 @@ These are development directions, not promises of completed automatic protocol g
 
 | Branch | Purpose |
 | --- | --- |
-| `esp32-s3`    | Default branch and active development platform; current release **v2.0.0-beta.2** |
+| `esp32-s3`    | Default branch and active development platform; current release **v2.0.0-beta.3** |
 | `esp8266`     | Legacy implementation; final feature release **v1.2.0**                           |
 
 The ESP8266 branch may receive critical fixes, but new feature development targets ESP32-S3.
