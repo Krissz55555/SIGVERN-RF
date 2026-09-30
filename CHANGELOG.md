@@ -1,9 +1,10 @@
 # SIGVERN RF changelog
 
-## 2.0.0-beta.2-rebrand.1 — source checkpoint
+## v2.0.0-beta.3 (Unreleased)
 
 - Rename firmware, WebUI, board/source identifiers and active documentation.
 - Use the supplied SIGVERN RF logo with a compact emblem and separate RF label.
+- Refresh README screenshots and add a dark-backed logo banner.
 - Move MQTT/HA identity to chip-based `sigvern_rf_` IDs and `sigvern/rf/` topics.
 - Retire legacy discovery before publishing new records; retry failed sends.
 - Read legacy backups and write SIGVERN backup containers.

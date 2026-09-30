@@ -1,8 +1,13 @@
-# SIGVERN RF — rebrand checkpoint 1
+# SIGVERN RF - migration guide
 
-Version: `2.0.0-beta.2-rebrand.1` · Based on OpenRF Platform `2.0.0-beta.2`.
-This is a source checkpoint awaiting physical ESP32-S3 / MQTT / HA validation.
-Deep Analyzer work has not started.
+Target version: `2.0.0-beta.3` (release preparation).
+Based on OpenRF Platform `2.0.0-beta.2`.
+
+The `2.0.0-beta.2-rebrand.1` checkpoint passed the maintainer's reported
+hardware checks, including replacement of old HA entities with SIGVERN
+entities, restart behavior, and backup/restore.
+The final beta.3 firmware and filesystem images still require building
+and verification. Deep Analyzer work has not started.
 
 ## Identity
 
@@ -30,7 +35,7 @@ again on boot or after restoring an old backup.
 ## Upgrade without losing settings or slots
 
 1. Export a backup from the running OpenRF device and save it on your computer.
-2. Prebuilt application and filesystem images are in `release/`. To rebuild
+2. Use matching firmware and filesystem images from the GitHub release once published. To build
    from this complete source folder, use:
    `pio run -e esp32s3` and `pio run -e esp32s3 -t buildfs`.
 3. Update the firmware **and** WebUI filesystem. Firmware-only OTA preserves the
@@ -88,10 +93,9 @@ raster's texture/transparency is retained; this is not a newly redrawn logo.
 Historical release notes, historical changelog entries and baseline screenshots
 remain historical evidence. Active documentation, UI, board metadata, source
 identifiers and statistics labels use SIGVERN. Binary slot signatures remain
-unchanged for storage compatibility. No GitHub repository, release or domain
-has been renamed/published remotely in this task.
+unchanged for storage compatibility. The GitHub repository is now `Krissz55555/SIGVERN-RF`. The beta.3 release has not yet been published. Website/domain migration is a separate step.
 
-## Physical acceptance gate
+## Validation checklist
 
 - Firmware and filesystem build/upload; no boot loop, both CC1101s healthy.
 - Original backup restores Wi-Fi/MQTT, profiles, 30 RAW / 15 RX slot capacity.
@@ -101,4 +105,4 @@ has been renamed/published remotely in this task.
 - No discovery-driven RF transmission; known/unknown/ambiguous routing unchanged.
 - 433/868 RX/TX, RAW Learn/Replay, dedup, live UI and OTA remain functional.
 
-Do not freeze this checkpoint as hardware-PASS until these checks are complete.
+The checklist above defines migration coverage; the reported checkpoint results are summarized at the top. Build and verify the final beta.3 images before publishing the release.

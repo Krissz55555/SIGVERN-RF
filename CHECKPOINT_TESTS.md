@@ -1,5 +1,7 @@
 # Rebrand checkpoint validation
 
+The results below apply to version 2.0.0-beta.2-rebrand.1.
+
 - `python tests/run_rebrand_host.py`: PASS. Compiles the production cleanup loop
   and topic enumerator; checks all 200 legacy topics, retained empty payloads,
   pacing, failed-publish retry, disconnect and restart, plus new discovery gating.
@@ -20,5 +22,9 @@
 - Browser visual QA: PASS at 1440×950 and 390×844. No horizontal page
   overflow; emblem and separated RF wordmark remain visible. Screenshots in
   `docs/preview/` use mocked empty API responses, not live hardware data.
-- Physical radio, MQTT broker and Home Assistant tests: NOT RUN. See the acceptance
-  gate in REBRAND_MIGRATION.md. Host tests do not establish a hardware PASS.
+- Maintainer-reported physical checks: PASS for the tested rebrand checkpoint.
+  Normal operation, removal of old HA entities, appearance of SIGVERN entities,
+  restart behavior and backup/restore were reported working.
+  This report does not individually certify every validation-checklist item.
+- Final 2.0.0-beta.3 firmware and filesystem build/verification: PENDING.
+  The build sizes above belong to the rebrand checkpoint.

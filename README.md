@@ -6,9 +6,9 @@
 
 **Open-source RF gateway and signal-analysis platform for ESP32-S3, dual CC1101 radios, and local Home Assistant integration.**
 
-**Current development checkpoint: v2.0.0-beta.2-rebrand.1**
+**Development version: v2.0.0-beta.3 (release preparation)**
 
-Previously OpenRF Platform. This checkpoint changes the project identity and MQTT/HA identifiers; the beta.2 RF engine is preserved. Read [REBRAND_MIGRATION.md](REBRAND_MIGRATION.md) before upgrading.
+Previously OpenRF Platform. The upcoming beta.3 release introduces the SIGVERN RF identity and MQTT/HA migration while preserving the beta.2 RF engine. Read [REBRAND_MIGRATION.md](REBRAND_MIGRATION.md) before upgrading.
 
 > SIGVERN RF v2.0.0-beta.2 goes beyond the ESP32-S3 migration delivered in beta.1. It establishes the RF capture, normalization, protocol-decision, diagnostics, and learned-signal infrastructure needed for the future **Deep Analyzer**.
 
