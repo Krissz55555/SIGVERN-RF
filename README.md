@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/sigvern-rf-logo.png" alt="SIGVERN RF" width="600">
+  <img src="assets/sigvern-rf-readme-banner.svg" alt="SIGVERN RF" width="600">
 </p>
 
 # SIGVERN RF
@@ -199,8 +199,8 @@ Live indicators expose Core 0, Core 1, PSRAM, and heap usage. Navigation support
 
 <table>
   <tr>
-    <td width="50%"><small>Historical OpenRF beta.2 screenshot (before rebrand)</small><img src="assets/webui-rf-slots-beta2.png" alt="Historical RAW RF Slots in OpenRF Platform v2.0.0-beta.2"></td>
-    <td width="50%"><img src="assets/webui-rx-slots-beta2.png" alt="Historical RX Slots in OpenRF Platform v2.0.0-beta.2"></td>
+    <td width="50%"><img src="assets/sigvern-rf-rf-slots.png" alt="SIGVERN RF - bidirectional RAW RF Slots"></td>
+    <td width="50%"><img src="assets/sigvern-rf-rx-slots.png" alt="SIGVERN RF - known-protocol RX Slots"></td>
   </tr>
   <tr>
     <td align="center"><strong>Bidirectional RAW RF Slots</strong><br>Saved RAW signals can be transmitted and can match later eligible UNKNOWN receptions.</td>
@@ -209,7 +209,7 @@ Live indicators expose Core 0, Core 1, PSRAM, and heap usage. Navigation support
 </table>
 
 <p align="center">
-  <img src="assets/webui-rf-analyzer-beta2.png" alt="Historical RF Analyzer in OpenRF Platform v2.0.0-beta.2" width="760">
+  <img src="assets/sigvern-rf-analyzer.png" alt="SIGVERN RF - live RF Analyzer" width="760">
 </p>
 <p align="center"><strong>Live RF Analyzer</strong><br>Inspect accepted and rejected captures without stopping normal gateway operation.</p>
 
