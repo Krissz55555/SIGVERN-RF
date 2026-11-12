@@ -475,8 +475,8 @@ Created and maintained by **Kocsis Krisztián**, with implementation assistance,
 <!-- SIGVERN_STATS_START -->
 ## SIGVERN RF Statistics
 
-- Repository views: **1539**
-- Repository clones: **1014**
+- Repository views: **1541**
+- Repository clones: **1022**
 - Tracking since: **2026-08-07**
 
 <!-- SIGVERN_STATS_END -->
